@@ -10,8 +10,16 @@ import { getPool, testConnection } from './db/connection.js';
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// Security middleware - allow inline scripts for admin dashboard
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "script-src": ["'self'", "'unsafe-inline'"],
+      "script-src-attr": ["'unsafe-inline'"],
+    },
+  },
+}));
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true,
