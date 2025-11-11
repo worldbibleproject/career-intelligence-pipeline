@@ -23,6 +23,8 @@ interface ImportOptions {
 async function importJob(socCode: string, title: string, description: string): Promise<number> {
   const pool = getPool();
   
+  logger.info(`[importJob] Inserting job: ${socCode} - ${title}`);
+  
   const result = await pool.query(
     `INSERT INTO jobs ("canonicalTitle", "shortDescription", "socCode", "onetCode")
      VALUES ($1, $2, $3, $4)
@@ -34,7 +36,10 @@ async function importJob(socCode: string, title: string, description: string): P
     [title, description.substring(0, 500), socCode, socCode]
   );
   
-  return result.rows[0].id;
+  const jobId = result.rows[0].id;
+  logger.info(`[importJob] Job inserted with ID: ${jobId}`);
+  
+  return jobId;
 }
 
 async function createProgressRecords(jobId: number, regionId: number): Promise<void> {
@@ -101,8 +106,14 @@ async function main(skipPoolClose = false) {
   }
   
   logger.info('Starting O*NET import from embedded data', options);
+  logger.info(`[DEBUG] onetOccupations array length: ${onetOccupations.length}`);
   
   try {
+    // Test database connection first
+    const pool = getPool();
+    const testResult = await pool.query('SELECT NOW()');
+    logger.info(`[DEBUG] Database connection OK: ${testResult.rows[0].now}`);
+    
     // Get region ID
     const regionId = await getRegionId(options.region);
     logger.info(`Using region: ${options.region} (ID: ${regionId})`);
@@ -110,11 +121,13 @@ async function main(skipPoolClose = false) {
     // Use embedded data
     const records = onetOccupations as ONetRow[];
     logger.info(`Found ${records.length} occupations in embedded data`);
+    logger.info(`[DEBUG] First record: ${JSON.stringify(records[0])}`);
     
     // Import each job
     let imported = 0;
     let updated = 0;
     let enqueued = 0;
+    let errors = 0;
     
     for (const record of records) {
       const socCode = record.code;
@@ -144,7 +157,12 @@ async function main(skipPoolClose = false) {
           logger.info(`Progress: ${imported}/${records.length} jobs imported`);
         }
       } catch (error) {
+        errors++;
         logger.error(`Error importing job ${socCode}:`, error);
+        if (errors > 10) {
+          logger.error('Too many errors, stopping import');
+          throw new Error(`Import failed after ${errors} errors`);
+        }
       }
     }
     
@@ -152,7 +170,17 @@ async function main(skipPoolClose = false) {
       totalRecords: records.length,
       imported,
       enqueued: options.enqueue ? enqueued : 0,
+      errors,
     });
+    
+    // Verify the import
+    const verifyResult = await pool.query('SELECT COUNT(*) FROM jobs');
+    logger.info(`[VERIFY] Total jobs in database: ${verifyResult.rows[0].count}`);
+    
+    if (options.enqueue) {
+      const queueResult = await pool.query('SELECT COUNT(*) FROM ai_job_queue');
+      logger.info(`[VERIFY] Total queue items in database: ${queueResult.rows[0].count}`);
+    }
   } catch (error) {
     logger.error('❌ O*NET import failed:', error);
     throw error;
