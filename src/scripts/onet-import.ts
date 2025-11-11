@@ -11,9 +11,10 @@ import { logger } from '../utils/logger.js';
 import config from '../config/index.js';
 
 interface ONetRow {
-  'O*NET-SOC Code': string;
-  Title: string;
-  Description: string;
+  'Job Zone': string;
+  'Code': string;
+  'Occupation': string;
+  'Data-level': string;
 }
 
 interface ImportOptions {
@@ -140,9 +141,10 @@ async function main() {
     let enqueued = 0;
     
     for (const record of records) {
-      const socCode = record['O*NET-SOC Code'];
-      const title = record['Title'];
-      const description = record['Description'] || '';
+      const socCode = record['Code'];
+      const title = record['Occupation'];
+      const jobZone = record['Job Zone'];
+      const description = `Job Zone: ${jobZone || 'N/A'}`;
       
       if (!socCode || !title) {
         logger.warn('Skipping row with missing SOC code or title', record);

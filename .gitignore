@@ -34,6 +34,7 @@ Thumbs.db
 
 # Data files
 *.csv
+!data/All_Occupations.csv
 data/*.csv
 !data/.gitkeep
 
