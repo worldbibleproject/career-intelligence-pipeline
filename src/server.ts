@@ -32,6 +32,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Compression
 app.use(compression());
 
+// Static files
+app.use(express.static('public'));
+
 // Request logging
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`, {
@@ -214,6 +217,32 @@ app.post('/api/admin/setup/prompts', adminAuth, async (req, res) => {
     logger.error('Prompt installation failed:', error);
     res.status(500).json({ 
       error: 'Prompt installation failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Admin worker endpoint
+app.post('/api/admin/worker/start', adminAuth, async (req, res) => {
+  try {
+    const maxItems = req.body?.maxItems || 100;
+    logger.info(`Starting AI worker with max ${maxItems} items...`);
+    
+    // Import and run worker in background
+    import('./scripts/ai-worker.js').then(({ runWorker }) => {
+      runWorker(maxItems, true).catch(error => {
+        logger.error('Worker error:', error);
+      });
+    });
+    
+    res.json({ 
+      status: 'ok', 
+      message: `AI worker started (processing up to ${maxItems} items)` 
+    });
+  } catch (error) {
+    logger.error('Failed to start worker:', error);
+    res.status(500).json({ 
+      error: 'Failed to start worker',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
