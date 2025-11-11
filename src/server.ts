@@ -187,6 +187,54 @@ app.get('/api/admin/status', adminAuth, async (req, res) => {
   }
 });
 
+app.post('/api/admin/setup/database', adminAuth, async (req, res) => {
+  try {
+    logger.info('Importing db-setup script...');
+    const { setupDatabase } = await import('./scripts/db-setup.js');
+    logger.info('Running database setup...');
+    await setupDatabase();
+    res.json({ status: 'ok', message: 'Database schema created successfully' });
+  } catch (error) {
+    logger.error('Database setup failed:', error);
+    res.status(500).json({ 
+      error: 'Database setup failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.post('/api/admin/setup/prompts', adminAuth, async (req, res) => {
+  try {
+    logger.info('Importing ai-queries script...');
+    const { installPrompts } = await import('./scripts/ai-queries.js');
+    logger.info('Installing prompt templates...');
+    await installPrompts();
+    res.json({ status: 'ok', message: 'Prompt templates installed successfully' });
+  } catch (error) {
+    logger.error('Prompt installation failed:', error);
+    res.status(500).json({ 
+      error: 'Prompt installation failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.post('/api/admin/setup/import', adminAuth, async (req, res) => {
+  try {
+    logger.info('Importing onet-import script...');
+    const { importONet } = await import('./scripts/onet-import.js');
+    logger.info('Importing O*NET data...');
+    await importONet();
+    res.json({ status: 'ok', message: 'O*NET data imported successfully' });
+  } catch (error) {
+    logger.error('O*NET import failed:', error);
+    res.status(500).json({ 
+      error: 'O*NET import failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });

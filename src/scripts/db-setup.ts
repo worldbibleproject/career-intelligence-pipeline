@@ -653,10 +653,12 @@ async function createNormalizedTables() {
   `);
 }
 
-// Run if called directly
-main().catch((error) => {
-  logger.error('Script failed:', error);
-  process.exit(1);
-});
+// Run if called directly (not when imported as a module)
+if (process.argv[1]?.includes('db-setup')) {
+  main().catch((error) => {
+    logger.error('Script failed:', error);
+    process.exit(1);
+  });
+}
 
 export { main as setupDatabase };
