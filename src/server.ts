@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
 import config from './config/index.js';
 import { logger } from './utils/logger.js';
 import { getPool, testConnection } from './db/connection.js';
@@ -32,8 +33,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Compression
 app.use(compression());
 
-// Static files
+// Static files - serve from both root public and dist/public for flexibility
 app.use(express.static('public'));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // Request logging
 app.use((req, res, next) => {
