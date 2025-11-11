@@ -118,7 +118,7 @@ const config: AppConfig = {
     maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || '4096', 10),
   },
   paths: {
-    onetCsv: process.env.ONET_CSV_PATH || path.join(process.cwd(), 'All_Occupations.csv'),
+    onetCsv: process.env.ONET_CSV_PATH || path.join(process.cwd(), 'data', 'All_Occupations.csv'),
     logsDir: process.env.LOGS_DIR || path.join(process.cwd(), 'logs'),
     tmpDir: process.env.TMP_DIR || '/tmp',
   },
