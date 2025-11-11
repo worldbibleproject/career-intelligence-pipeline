@@ -383,7 +383,7 @@ app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
     
     // Get first job from queue
     const jobResult = await pool.query(`
-      SELECT DISTINCT j.id, j."canonicalTitle", j."socCode"
+      SELECT DISTINCT j.id, j.canonicaltitle as "canonicalTitle", j.soccode as "socCode"
       FROM jobs j
       INNER JOIN ai_job_queue q ON q.job_id = j.id
       WHERE q.status = 'pending'
