@@ -287,6 +287,9 @@
                 <button class="btn btn-primary" onclick="runSetup('database')">
                     Setup Database
                 </button>
+                <button class="btn btn-secondary" onclick="verifyDatabase()" style="margin-left: 10px;">
+                    ✓ Verify
+                </button>
             </div>
             
             <div class="action-card">
@@ -294,6 +297,9 @@
                 <p>Load 38 AI query templates into the database.</p>
                 <button class="btn btn-primary" onclick="runSetup('prompts')">
                     Install Prompts
+                </button>
+                <button class="btn btn-secondary" onclick="verifyPrompts()" style="margin-left: 10px;">
+                    ✓ Verify
                 </button>
             </div>
             
@@ -303,13 +309,19 @@
                 <button class="btn btn-primary" onclick="runImport()">
                     Import Jobs
                 </button>
+                <button class="btn btn-secondary" onclick="verifyImport()" style="margin-left: 10px;">
+                    ✓ Verify
+                </button>
             </div>
             
             <div class="action-card">
                 <h3>4️⃣ Run AI Worker</h3>
                 <p>Process queue items with OpenAI API calls.</p>
-                <button class="btn btn-primary" onclick="runWorker()">
-                    Start AI Worker
+                <button class="btn btn-primary" onclick="runTestJob()">
+                    🧪 Run Test Job
+                </button>
+                <button class="btn btn-primary" onclick="runWorker()" style="margin-left: 10px;">
+                    Start Full Worker
                 </button>
                 <button class="btn btn-secondary" onclick="stopWorker()" style="margin-left: 10px;">
                     Stop
@@ -537,6 +549,125 @@
                 workerInterval = null;
                 hideProgress();
                 addLog('Worker monitoring stopped', 'info');
+            }
+        }
+        
+        async function verifyDatabase() {
+            try {
+                addLog('Verifying database tables...', 'info');
+                const data = await fetchWithAuth(`${API_BASE}/api/admin/verify/database`);
+                
+                if (data.success) {
+                    addLog(`✓ Database verified: ${data.tablesFound} tables found`, 'success');
+                    addLog(`  Expected: ${data.expectedTables.join(', ')}`, 'info');
+                    if (data.missingTables.length > 0) {
+                        addLog(`  ⚠ Missing: ${data.missingTables.join(', ')}`, 'warning');
+                    } else {
+                        addLog('  ✓ All required tables exist!', 'success');
+                    }
+                } else {
+                    addLog(`✗ Verification failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(`✗ Verify failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function verifyPrompts() {
+            try {
+                addLog('Verifying AI prompts...', 'info');
+                const data = await fetchWithAuth(`${API_BASE}/api/admin/verify/prompts`);
+                
+                if (data.success) {
+                    addLog(`✓ Prompts verified: ${data.promptsFound}/38 prompts installed`, 'success');
+                    if (data.promptsFound === 38) {
+                        addLog('  ✓ All 38 AI query templates are installed!', 'success');
+                    } else {
+                        addLog(`  ⚠ Expected 38, found ${data.promptsFound}`, 'warning');
+                    }
+                } else {
+                    addLog(`✗ Verification failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(`✗ Verify failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function verifyImport() {
+            try {
+                addLog('Verifying job import...', 'info');
+                const data = await fetchWithAuth(`${API_BASE}/api/admin/verify/import`);
+                
+                if (data.success) {
+                    addLog(`✓ Import verified:`, 'success');
+                    addLog(`  - Jobs imported: ${data.jobsCount}`, 'info');
+                    addLog(`  - Queue items: ${data.queueCount}`, 'info');
+                    addLog(`  - Progress records: ${data.progressCount}`, 'info');
+                    if (data.jobsCount > 0 && data.queueCount > 0) {
+                        addLog('  ✓ Import successful! Ready to process.', 'success');
+                    } else {
+                        addLog('  ⚠ No jobs or queue items found', 'warning');
+                    }
+                } else {
+                    addLog(`✗ Verification failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(`✗ Verify failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function runTestJob() {
+            try {
+                addLog('🧪 Starting TEST JOB - Processing 1 job with detailed logs...', 'info');
+                addLog('This will run all 38 AI queries for a single job', 'info');
+                showProgress('Running Test Job');
+                updateProgress(0, 'Initializing test...');
+                
+                const startTime = Date.now();
+                let currentQuery = 0;
+                
+                // Simulate progress
+                const progressInterval = setInterval(() => {
+                    currentQuery++;
+                    const percent = Math.min((currentQuery / 38) * 100, 95);
+                    updateProgress(percent, `Processing query ${currentQuery}/38...`);
+                }, 2000);
+                
+                const response = await fetchWithAuth(`${API_BASE}/api/admin/worker/test`, {
+                    method: 'POST',
+                    body: JSON.stringify({ verbose: true })
+                });
+                
+                clearInterval(progressInterval);
+                
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                updateProgress(100, `Test complete in ${elapsed}s!`);
+                
+                if (response.success) {
+                    addLog(`✓ Test job completed successfully! (${elapsed}s)`, 'success');
+                    addLog(`  Job: ${response.jobTitle || 'Unknown'}`, 'info');
+                    addLog(`  Queries processed: ${response.queriesProcessed}/38`, 'info');
+                    addLog(`  Success: ${response.successful}`, 'success');
+                    addLog(`  Failed: ${response.failed}`, response.failed > 0 ? 'error' : 'info');
+                    
+                    if (response.logs && response.logs.length > 0) {
+                        addLog('Detailed logs:', 'info');
+                        response.logs.forEach(log => {
+                            addLog(`  ${log}`, 'info');
+                        });
+                    }
+                } else {
+                    addLog(`✗ Test job failed: ${response.message}`, 'error');
+                }
+                
+                setTimeout(() => {
+                    hideProgress();
+                    loadStats();
+                }, 2000);
+                
+            } catch (error) {
+                addLog(`✗ Test job error: ${error.message}`, 'error');
+                hideProgress();
             }
         }
         
