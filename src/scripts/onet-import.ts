@@ -26,12 +26,12 @@ async function importJob(socCode: string, title: string, description: string): P
   logger.info(`[importJob] Inserting job: ${socCode} - ${title}`);
   
   const result = await pool.query(
-    `INSERT INTO jobs ("canonicalTitle", "shortDescription", "socCode", "onetCode")
+    `INSERT INTO jobs (canonicaltitle, shortdescription, soccode, onetcode)
      VALUES ($1, $2, $3, $4)
-     ON CONFLICT ("socCode") DO UPDATE SET
-       "canonicalTitle" = EXCLUDED."canonicalTitle",
-       "shortDescription" = EXCLUDED."shortDescription",
-       "onetCode" = EXCLUDED."onetCode"
+     ON CONFLICT (soccode) DO UPDATE SET
+       canonicaltitle = EXCLUDED.canonicaltitle,
+       shortdescription = EXCLUDED.shortdescription,
+       onetcode = EXCLUDED.onetcode
      RETURNING id`,
     [title, description.substring(0, 500), socCode, socCode]
   );
