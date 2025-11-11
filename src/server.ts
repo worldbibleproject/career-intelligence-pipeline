@@ -222,10 +222,45 @@ app.post('/api/admin/setup/prompts', adminAuth, async (req, res) => {
 app.post('/api/admin/setup/import', adminAuth, async (req, res) => {
   try {
     logger.info('Importing onet-import script...');
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    // Try multiple paths for the CSV
+    const possiblePaths = [
+      path.join(process.cwd(), 'data', 'All_Occupations.csv'),
+      path.join(process.cwd(), 'All_Occupations.csv'),
+      '/app/data/All_Occupations.csv',
+      '/app/All_Occupations.csv',
+    ];
+    
+    let csvPath: string | null = null;
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        csvPath = p;
+        logger.info(`Found CSV at: ${csvPath}`);
+        break;
+      }
+    }
+    
+    if (!csvPath) {
+      const cwd = process.cwd();
+      const files = fs.readdirSync(cwd);
+      const dataFiles = fs.existsSync(path.join(cwd, 'data')) ? fs.readdirSync(path.join(cwd, 'data')) : [];
+      throw new Error(`CSV file not found. Tried: ${possiblePaths.join(', ')}. CWD: ${cwd}. Files in CWD: ${files.join(', ')}. Files in data/: ${dataFiles.join(', ')}`);
+    }
+    
+    // Set up argv to enable enqueue
+    const originalArgv = process.argv;
+    process.argv = ['node', 'onet-import', `--csv=${csvPath}`, '--enqueue'];
+    
     const { importONet } = await import('./scripts/onet-import.js');
-    logger.info('Importing O*NET data...');
+    logger.info('Importing O*NET data with enqueue enabled...');
     await importONet();
-    res.json({ status: 'ok', message: 'O*NET data imported successfully' });
+    
+    // Restore argv
+    process.argv = originalArgv;
+    
+    res.json({ status: 'ok', message: 'O*NET data imported and queued successfully' });
   } catch (error) {
     logger.error('O*NET import failed:', error);
     res.status(500).json({ 
