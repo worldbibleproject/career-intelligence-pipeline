@@ -654,11 +654,9 @@ async function createNormalizedTables() {
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    logger.error('Script failed:', error);
-    process.exit(1);
-  });
-}
+main().catch((error) => {
+  logger.error('Script failed:', error);
+  process.exit(1);
+});
 
 export { main as setupDatabase };
