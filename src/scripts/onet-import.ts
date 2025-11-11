@@ -4,35 +4,20 @@
  * Imports O*NET occupation data from CSV and creates queue items
  */
 
-import fs from 'fs';
-import { parse } from 'csv-parse';
 import { getPool, closePool } from '../db/connection.js';
 import { logger } from '../utils/logger.js';
-import config from '../config/index.js';
+import { onetOccupations } from '../data/onet-data.js';
 
 interface ONetRow {
-  'Job Zone': string;
-  'Code': string;
-  'Occupation': string;
-  'Data-level': string;
+  jobZone: string;
+  code: string;
+  occupation: string;
+  dataLevel: string;
 }
 
 interface ImportOptions {
-  csvPath: string;
   region: string;
   enqueue: boolean;
-}
-
-async function parseCSV(filePath: string): Promise<ONetRow[]> {
-  return new Promise((resolve, reject) => {
-    const records: ONetRow[] = [];
-    
-    fs.createReadStream(filePath)
-      .pipe(parse({ columns: true, skip_empty_lines: true }))
-      .on('data', (row) => records.push(row))
-      .on('end', () => resolve(records))
-      .on('error', reject);
-  });
 }
 
 async function importJob(socCode: string, title: string, description: string): Promise<number> {
@@ -103,37 +88,28 @@ async function main(skipPoolClose = false) {
   // Parse command line arguments
   const args = process.argv.slice(2);
   const options: ImportOptions = {
-    csvPath: config.paths.onetCsv,
     region: 'US',
     enqueue: false,
   };
   
   for (const arg of args) {
-    if (arg.startsWith('--csv=')) {
-      options.csvPath = arg.split('=')[1];
-    } else if (arg.startsWith('--region=')) {
+    if (arg.startsWith('--region=')) {
       options.region = arg.split('=')[1];
     } else if (arg === '--enqueue' || arg === '--enqueue=all') {
       options.enqueue = true;
     }
   }
   
-  logger.info('Starting O*NET import', options);
+  logger.info('Starting O*NET import from embedded data', options);
   
   try {
-    // Check if file exists
-    if (!fs.existsSync(options.csvPath)) {
-      throw new Error(`CSV file not found: ${options.csvPath}`);
-    }
-    
     // Get region ID
     const regionId = await getRegionId(options.region);
     logger.info(`Using region: ${options.region} (ID: ${regionId})`);
     
-    // Parse CSV
-    logger.info('Parsing CSV file...');
-    const records = await parseCSV(options.csvPath);
-    logger.info(`Found ${records.length} occupations in CSV`);
+    // Use embedded data
+    const records = onetOccupations as ONetRow[];
+    logger.info(`Found ${records.length} occupations in embedded data`);
     
     // Import each job
     let imported = 0;
@@ -141,9 +117,9 @@ async function main(skipPoolClose = false) {
     let enqueued = 0;
     
     for (const record of records) {
-      const socCode = record['Code'];
-      const title = record['Occupation'];
-      const jobZone = record['Job Zone'];
+      const socCode = record.code;
+      const title = record.occupation;
+      const jobZone = record.jobZone;
       const description = `Job Zone: ${jobZone || 'N/A'}`;
       
       if (!socCode || !title) {
