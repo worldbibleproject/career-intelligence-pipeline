@@ -491,66 +491,107 @@ app.post('/api/admin/setup/create-queue', adminAuth, async (req, res) => {
     logger.info('Creating queue items for existing jobs...');
     const pool = getPool();
     
+    // First, ensure unique constraint exists on ai_job_queue
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_job_queue_unique 
+      ON ai_job_queue(job_id, region_id, query_id)
+    `);
+    logger.info('Ensured unique constraint on ai_job_queue');
+    
     // Get all jobs
     const jobsResult = await pool.query('SELECT id FROM jobs');
     const jobIds = jobsResult.rows.map(row => row.id);
+    logger.info(`Found ${jobIds.length} jobs`);
+    
+    if (jobIds.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No jobs found in database. Run import first.',
+      });
+    }
     
     // Get US region ID
     const regionResult = await pool.query('SELECT id FROM regions WHERE code = $1', ['US']);
+    if (regionResult.rows.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'US region not found in database. Run database setup first.',
+      });
+    }
     const regionId = regionResult.rows[0].id;
+    logger.info(`Using region US (ID: ${regionId})`);
     
     // Get all query IDs
     const queriesResult = await pool.query('SELECT id FROM ai_queries');
     const queryIds = queriesResult.rows.map(row => row.id);
+    logger.info(`Found ${queryIds.length} query types`);
     
-    logger.info(`Creating queue items: ${jobIds.length} jobs × ${queryIds.length} queries = ${jobIds.length * queryIds.length} items`);
+    if (queryIds.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No query types found. Run prompt setup first.',
+      });
+    }
+    
+    const totalExpected = jobIds.length * queryIds.length;
+    logger.info(`Creating queue items: ${jobIds.length} jobs × ${queryIds.length} queries = ${totalExpected} items`);
     
     let created = 0;
     let skipped = 0;
+    let errors = 0;
     
     // Create queue items for each job × query combination
-    for (const jobId of jobIds) {
+    for (let i = 0; i < jobIds.length; i++) {
+      const jobId = jobIds[i];
+      
       for (const queryId of queryIds) {
-        const result = await pool.query(
-          `INSERT INTO ai_job_queue (job_id, region_id, query_id, status, priority)
-           VALUES ($1, $2, $3, 'pending', 100)
-           ON CONFLICT DO NOTHING
-           RETURNING id`,
-          [jobId, regionId, queryId]
-        );
-        
-        if (result.rows.length > 0) {
-          created++;
-        } else {
-          skipped++;
+        try {
+          const result = await pool.query(
+            `INSERT INTO ai_job_queue (job_id, region_id, query_id, status, priority)
+             VALUES ($1, $2, $3, 'pending', 100)
+             ON CONFLICT (job_id, region_id, query_id) DO NOTHING
+             RETURNING id`,
+            [jobId, regionId, queryId]
+          );
+          
+          if (result.rows.length > 0) {
+            created++;
+          } else {
+            skipped++;
+          }
+        } catch (error) {
+          errors++;
+          logger.error(`Error creating queue item for job ${jobId}, query ${queryId}:`, error);
         }
       }
       
       // Log progress every 100 jobs
-      if ((jobIds.indexOf(jobId) + 1) % 100 === 0) {
-        logger.info(`Progress: ${jobIds.indexOf(jobId) + 1}/${jobIds.length} jobs processed`);
+      if ((i + 1) % 100 === 0) {
+        logger.info(`Progress: ${i + 1}/${jobIds.length} jobs processed (${created} created, ${skipped} skipped)`);
       }
     }
     
     // Create progress records too
+    logger.info('Creating progress records...');
     for (const jobId of jobIds) {
       for (const queryId of queryIds) {
         await pool.query(
           `INSERT INTO job_progress (job_id, region_id, query_id, status)
            VALUES ($1, $2, $3, 'pending')
-           ON CONFLICT DO NOTHING`,
+           ON CONFLICT (job_id, region_id, query_id) DO NOTHING`,
           [jobId, regionId, queryId]
         );
       }
     }
     
-    logger.info(`✅ Queue created: ${created} items created, ${skipped} already existed`);
+    logger.info(`✅ Queue created: ${created} items created, ${skipped} already existed, ${errors} errors`);
     
     res.json({ 
       status: 'ok', 
       message: `Queue created successfully: ${created} items created, ${skipped} skipped`,
       created,
       skipped,
+      errors,
       total: created + skipped
     });
   } catch (error) {
