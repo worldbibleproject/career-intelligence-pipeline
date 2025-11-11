@@ -391,28 +391,43 @@
         }
         
         async function fetchWithAuth(url, options = {}) {
-            const headers = {
-                'Authorization': `Bearer ${ADMIN_TOKEN}`,
-                'Content-Type': 'application/json',
-                ...options.headers
-            };
-            
-            const response = await fetch(url, { ...options, headers });
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({ message: response.statusText }));
-                throw new Error(error.message || 'Request failed');
+            try {
+                console.log('Fetching:', url, options.method || 'GET');
+                const headers = {
+                    'Authorization': `Bearer ${ADMIN_TOKEN}`,
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                };
+                
+                const response = await fetch(url, { ...options, headers });
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ message: response.statusText }));
+                    console.error('API Error:', error);
+                    throw new Error(error.message || error.error || 'Request failed');
+                }
+                const data = await response.json();
+                console.log('Response data:', data);
+                return data;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                addLog(`Network error: ${error.message}`, 'error');
+                throw error;
             }
-            return response.json();
         }
         
         async function loadStats() {
             try {
+                console.log('Loading stats...');
                 const data = await fetchWithAuth(`${API_BASE}/api/admin/status`);
                 document.getElementById('stat-jobs').textContent = data.jobs.total.toLocaleString();
                 document.getElementById('stat-pending').textContent = (data.progress.pending || 0).toLocaleString();
                 document.getElementById('stat-completed').textContent = (data.progress.completed || 0).toLocaleString();
                 document.getElementById('stat-errors').textContent = (data.progress.errors || 0).toLocaleString();
+                console.log('Stats loaded successfully');
             } catch (error) {
+                console.error('loadStats error:', error);
                 addLog(`Error loading stats: ${error.message}`, 'error');
             }
         }
