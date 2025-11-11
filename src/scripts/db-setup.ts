@@ -24,10 +24,16 @@ async function main() {
 
   try {
     // Extensions
-    await execSQL('Extensions', `
+    await execSQL('Extensions (uuid-ossp)', `
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-      CREATE EXTENSION IF NOT EXISTS vector;
     `);
+    
+    // Try vector extension, but don't fail if unavailable
+    try {
+      await execSQL('Extensions (vector)', `CREATE EXTENSION IF NOT EXISTS vector;`);
+    } catch (error) {
+      logger.warn('Vector extension not available - embeddings table will be skipped');
+    }
 
     // Helper function for updated_at trigger
     await execSQL('Helper trigger function', `
@@ -195,14 +201,18 @@ async function main() {
       FOR EACH ROW EXECUTE FUNCTION set_updated_at();
     `);
 
-    // Embeddings
-    await execSQL('Embeddings', `
-      CREATE TABLE IF NOT EXISTS job_embeddings (
-        job_id   BIGINT PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE,
-        source   TEXT,
-        embedding vector(1536)
-      );
-    `);
+    // Embeddings (skip if vector extension unavailable)
+    try {
+      await execSQL('Embeddings', `
+        CREATE TABLE IF NOT EXISTS job_embeddings (
+          job_id   BIGINT PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE,
+          source   TEXT,
+          embedding vector(1536)
+        );
+      `);
+    } catch (error) {
+      logger.warn('Skipping embeddings table creation (vector extension not available)');
+    }
 
     // Supporting infrastructure
     await execSQL('Prompts/Policies/Versions', `
