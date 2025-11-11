@@ -317,8 +317,11 @@
                 <button class="btn btn-primary" onclick="runImport()">
                     Import Jobs
                 </button>
+                <button class="btn btn-primary" onclick="createQueue()" style="margin-left: 10px;">
+                    Create Queue
+                </button>
                 <button class="btn btn-secondary" onclick="verifyImport()" style="margin-left: 10px;">
-                    ✓ Verify Import
+                    ✓ Verify
                 </button>
             </div>
             
@@ -511,6 +514,42 @@
                 }, 2000);
             } catch (error) {
                 addLog(`✗ Import failed: ${error.message}`, 'error');
+                hideProgress();
+            }
+        }
+        
+        async function createQueue() {
+            try {
+                addLog('Creating queue items for existing jobs...', 'info');
+                showProgress('Creating Queue');
+                updateProgress(0, 'Fetching jobs and queries...');
+                
+                const startTime = Date.now();
+                let progress = 0;
+                
+                // Simulate progress
+                const progressInterval = setInterval(() => {
+                    progress = Math.min(progress + 1, 90);
+                    updateProgress(progress, `Creating queue items... ${progress}%`);
+                }, 300);
+                
+                const data = await fetchWithAuth(`${API_BASE}/api/admin/setup/create-queue`, {
+                    method: 'POST'
+                });
+                
+                clearInterval(progressInterval);
+                
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                updateProgress(100, `Complete in ${elapsed}s!`);
+                addLog(`✓ ${data.message}`, 'success');
+                addLog(`  Created: ${data.created}, Skipped: ${data.skipped}, Total: ${data.total}`, 'info');
+                
+                setTimeout(() => {
+                    hideProgress();
+                    loadStats();
+                }, 2000);
+            } catch (error) {
+                addLog(`✗ Create queue failed: ${error.message}`, 'error');
                 hideProgress();
             }
         }

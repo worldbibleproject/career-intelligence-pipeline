@@ -486,6 +486,82 @@ app.post('/api/admin/setup/import', adminAuth, async (req, res) => {
   }
 });
 
+app.post('/api/admin/setup/create-queue', adminAuth, async (req, res) => {
+  try {
+    logger.info('Creating queue items for existing jobs...');
+    const pool = getPool();
+    
+    // Get all jobs
+    const jobsResult = await pool.query('SELECT id FROM jobs');
+    const jobIds = jobsResult.rows.map(row => row.id);
+    
+    // Get US region ID
+    const regionResult = await pool.query('SELECT id FROM regions WHERE code = $1', ['US']);
+    const regionId = regionResult.rows[0].id;
+    
+    // Get all query IDs
+    const queriesResult = await pool.query('SELECT id FROM ai_queries');
+    const queryIds = queriesResult.rows.map(row => row.id);
+    
+    logger.info(`Creating queue items: ${jobIds.length} jobs × ${queryIds.length} queries = ${jobIds.length * queryIds.length} items`);
+    
+    let created = 0;
+    let skipped = 0;
+    
+    // Create queue items for each job × query combination
+    for (const jobId of jobIds) {
+      for (const queryId of queryIds) {
+        const result = await pool.query(
+          `INSERT INTO ai_job_queue (job_id, region_id, query_id, status, priority)
+           VALUES ($1, $2, $3, 'pending', 100)
+           ON CONFLICT DO NOTHING
+           RETURNING id`,
+          [jobId, regionId, queryId]
+        );
+        
+        if (result.rows.length > 0) {
+          created++;
+        } else {
+          skipped++;
+        }
+      }
+      
+      // Log progress every 100 jobs
+      if ((jobIds.indexOf(jobId) + 1) % 100 === 0) {
+        logger.info(`Progress: ${jobIds.indexOf(jobId) + 1}/${jobIds.length} jobs processed`);
+      }
+    }
+    
+    // Create progress records too
+    for (const jobId of jobIds) {
+      for (const queryId of queryIds) {
+        await pool.query(
+          `INSERT INTO job_progress (job_id, region_id, query_id, status)
+           VALUES ($1, $2, $3, 'pending')
+           ON CONFLICT DO NOTHING`,
+          [jobId, regionId, queryId]
+        );
+      }
+    }
+    
+    logger.info(`✅ Queue created: ${created} items created, ${skipped} already existed`);
+    
+    res.json({ 
+      status: 'ok', 
+      message: `Queue created successfully: ${created} items created, ${skipped} skipped`,
+      created,
+      skipped,
+      total: created + skipped
+    });
+  } catch (error) {
+    logger.error('Create queue failed:', error);
+    res.status(500).json({ 
+      error: 'Create queue failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
