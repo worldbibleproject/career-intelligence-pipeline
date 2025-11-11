@@ -230,10 +230,16 @@ app.post('/api/admin/worker/start', adminAuth, async (req, res) => {
     const maxItems = req.body?.maxItems || 100;
     logger.info(`Starting AI worker with max ${maxItems} items...`);
     
+    // Set up argv for worker
+    const originalArgv = process.argv;
+    process.argv = ['node', 'ai-worker', `--max=${maxItems}`, '--verbose'];
+    
     // Import and run worker in background
     import('./scripts/ai-worker.js').then(({ runWorker }) => {
-      runWorker(maxItems, true).catch(error => {
+      runWorker().catch(error => {
         logger.error('Worker error:', error);
+      }).finally(() => {
+        process.argv = originalArgv;
       });
     });
     
