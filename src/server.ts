@@ -334,6 +334,47 @@ app.get('/api/admin/verify/import', adminAuth, async (req, res) => {
   }
 });
 
+app.get('/api/admin/verify/onet-data', adminAuth, async (req, res) => {
+  try {
+    // Verify embedded O*NET data
+    const { onetOccupations } = await import('./data/onet-data.js');
+    
+    const dataLength = onetOccupations.length;
+    const firstRecord = onetOccupations[0];
+    const lastRecord = onetOccupations[dataLength - 1];
+    
+    // Check required columns
+    const requiredColumns = ['occupation', 'code', 'jobZone', 'dataLevel'];
+    const firstRecordKeys = Object.keys(firstRecord);
+    const missingColumns = requiredColumns.filter(col => !firstRecordKeys.includes(col));
+    const hasAllColumns = missingColumns.length === 0;
+    
+    // Sample validation
+    const validRecords = onetOccupations.filter((rec: any) => 
+      rec.occupation && rec.code && rec.occupation.length > 0 && rec.code.length > 0
+    ).length;
+    
+    res.json({
+      success: hasAllColumns && dataLength === 1016,
+      dataLength,
+      expectedLength: 1016,
+      hasAllColumns,
+      requiredColumns,
+      missingColumns,
+      actualColumns: firstRecordKeys,
+      validRecords,
+      firstRecord,
+      lastRecord,
+    });
+  } catch (error) {
+    logger.error('O*NET data verification failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Unknown error' 
+    });
+  }
+});
+
 // Test job endpoint - process ONE job with all 38 queries
 app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
   try {

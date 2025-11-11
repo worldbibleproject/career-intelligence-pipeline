@@ -304,18 +304,26 @@
             </div>
             
             <div class="action-card">
-                <h3>3️⃣ Import O*NET Jobs</h3>
+                <h3>3️⃣ Verify O*NET Data</h3>
+                <p>Check embedded data file (1,016 occupations with columns).</p>
+                <button class="btn btn-primary" onclick="verifyOnetData()">
+                    ✓ Verify O*NET Data
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <h3>4️⃣ Import O*NET Jobs</h3>
                 <p>Import 1,016 occupations and create queue (38,608 items).</p>
                 <button class="btn btn-primary" onclick="runImport()">
                     Import Jobs
                 </button>
                 <button class="btn btn-secondary" onclick="verifyImport()" style="margin-left: 10px;">
-                    ✓ Verify
+                    ✓ Verify Import
                 </button>
             </div>
             
             <div class="action-card">
-                <h3>4️⃣ Run AI Worker</h3>
+                <h3>5️⃣ Run AI Worker</h3>
                 <p>Process queue items with OpenAI API calls.</p>
                 <button class="btn btn-primary" onclick="runTestJob()">
                     🧪 Run Test Job
@@ -593,9 +601,34 @@
             }
         }
         
+        async function verifyOnetData() {
+            try {
+                addLog('Verifying embedded O*NET data file...', 'info');
+                const data = await fetchWithAuth(`${API_BASE}/api/admin/verify/onet-data`);
+                
+                if (data.success) {
+                    addLog(`✓ O*NET data verified!`, 'success');
+                    addLog(`  Records: ${data.dataLength} (expected: ${data.expectedLength})`, 'info');
+                    addLog(`  Valid records: ${data.validRecords}`, 'info');
+                    addLog(`  Columns: ${data.actualColumns.join(', ')}`, 'info');
+                    if (data.missingColumns.length > 0) {
+                        addLog(`  ⚠ Missing columns: ${data.missingColumns.join(', ')}`, 'warning');
+                    } else {
+                        addLog(`  ✓ All required columns present!`, 'success');
+                    }
+                    addLog(`  First record: ${data.firstRecord.code} - ${data.firstRecord.occupation}`, 'info');
+                    addLog(`  Last record: ${data.lastRecord.code} - ${data.lastRecord.occupation}`, 'info');
+                } else {
+                    addLog(`✗ Verification failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(`✗ Verify failed: ${error.message}`, 'error');
+            }
+        }
+        
         async function verifyImport() {
             try {
-                addLog('Verifying job import...', 'info');
+                addLog('Verifying job import (database)...', 'info');
                 const data = await fetchWithAuth(`${API_BASE}/api/admin/verify/import`);
                 
                 if (data.success) {
