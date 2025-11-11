@@ -255,7 +255,7 @@ app.post('/api/admin/setup/import', adminAuth, async (req, res) => {
     
     const { importONet } = await import('./scripts/onet-import.js');
     logger.info('Importing O*NET data with enqueue enabled...');
-    await importONet();
+    await importONet(true); // skipPoolClose=true since server manages the pool
     
     // Restore argv
     process.argv = originalArgv;

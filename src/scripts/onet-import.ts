@@ -99,7 +99,7 @@ async function getRegionId(regionCode: string): Promise<number> {
   return result.rows[0].id;
 }
 
-async function main() {
+async function main(skipPoolClose = false) {
   // Parse command line arguments
   const args = process.argv.slice(2);
   const options: ImportOptions = {
@@ -181,7 +181,9 @@ async function main() {
     logger.error('❌ O*NET import failed:', error);
     throw error;
   } finally {
-    await closePool();
+    if (!skipPoolClose) {
+      await closePool();
+    }
   }
 }
 
