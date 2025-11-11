@@ -375,11 +375,14 @@ app.get('/api/admin/verify/onet-data', adminAuth, async (req, res) => {
   }
 });
 
-// Test job endpoint - process ONE job with all 38 queries
+// Test job endpoint - process ONE job with all 38 queries USING REAL OPENAI
 app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
   try {
     const pool = getPool();
-    logger.info('Starting test job - processing 1 job with all 38 queries...');
+    logger.info('Starting REAL test job with OpenAI - processing 1 job with all 38 queries...');
+    
+    // Import worker functions
+    const { callOpenAI, validateJSON } = await import('./services/openai.js');
     
     // Get first job from queue
     const jobResult = await pool.query(`
@@ -402,13 +405,16 @@ app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
     
     logs.push(`Testing job: ${job.canonicalTitle} (ID: ${job.id})`);
     logs.push(`SOC Code: ${job.socCode}`);
+    logs.push(`⚠ WARNING: This will make 38 REAL OpenAI API calls!`);
     logs.push('---');
     
-    // Get all queue items for this job
+    // Get all queue items for this job with prompts
     const queueItems = await pool.query(`
-      SELECT q.id, q.query_id, aq.display_name
+      SELECT q.id as queue_id, q.job_id, q.region_id, q.query_id, 
+             aq.display_name, pt.template as prompt_template
       FROM ai_job_queue q
       INNER JOIN ai_queries aq ON aq.id = q.query_id
+      LEFT JOIN prompt_templates pt ON q.query_id = pt.id
       WHERE q.job_id = $1 AND q.status = 'pending'
       ORDER BY q.query_id
       LIMIT 38
@@ -419,28 +425,79 @@ app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
     
     let successful = 0;
     let failed = 0;
+    let totalTokens = 0;
     
-    // Process each query (in dry-run mode for testing)
+    // Process each query WITH REAL OPENAI CALLS
     for (const item of queueItems.rows) {
+      const startTime = Date.now();
+      
       try {
         logs.push(`[${successful + failed + 1}/38] ${item.display_name}...`);
         
-        // Mark as complete (dry-run, not actually calling OpenAI)
+        // Mark as running
         await pool.query(
-          `UPDATE ai_job_queue SET status = 'ok', updated_at = NOW() WHERE id = $1`,
-          [item.id]
+          `UPDATE ai_job_queue SET status = 'running', updated_at = NOW() WHERE id = $1`,
+          [item.queue_id]
         );
         
+        // Render prompt
+        const prompt = item.prompt_template
+          .replace(/\{\{canonical_title\}\}/g, job.canonicalTitle)
+          .replace(/\{\{soc_code\}\}/g, job.socCode)
+          .replace(/\{\{region_code\}\}/g, 'US')
+          .replace(/\{\{today\}\}/g, new Date().toISOString().split('T')[0])
+          .replace(/\{\{currency\}\}/g, 'USD');
+        
+        // Call OpenAI
+        const response = await callOpenAI({ prompt });
+        const elapsed = Date.now() - startTime;
+        
+        // Validate JSON
+        const validation = await validateJSON(response.content);
+        if (!validation.valid) {
+          throw new Error(`Invalid JSON: ${validation.error}`);
+        }
+        
+        // Save to database
+        await pool.query(
+          `INSERT INTO career_intelligence_data (job_id, region_id, query_id, response_data, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, now(), now())
+           ON CONFLICT (job_id, region_id, query_id) DO UPDATE SET
+             response_data = EXCLUDED.response_data, updated_at = now()`,
+          [item.job_id, item.region_id, item.query_id, JSON.stringify(validation.data)]
+        );
+        
+        // Mark as complete
+        await pool.query(
+          `UPDATE ai_job_queue SET status = 'ok', updated_at = NOW() WHERE id = $1`,
+          [item.queue_id]
+        );
+        
+        const tokens = response.usage?.totalTokens || 0;
+        totalTokens += tokens;
+        
         successful++;
-        logs.push(`  ✓ Success`);
+        logs.push(`  ✓ Success (${elapsed}ms, ${tokens} tokens)`);
       } catch (error) {
+        const elapsed = Date.now() - startTime;
         failed++;
-        logs.push(`  ✗ Failed: ${error instanceof Error ? error.message : 'Unknown'}`);
+        const errorMsg = error instanceof Error ? error.message : 'Unknown';
+        logs.push(`  ✗ Failed (${elapsed}ms): ${errorMsg}`);
+        
+        // Mark as error
+        await pool.query(
+          `UPDATE ai_job_queue SET status = 'error', last_error = $2, updated_at = NOW() WHERE id = $1`,
+          [item.queue_id, errorMsg.substring(0, 1000)]
+        );
       }
     }
     
+    const estimatedCost = (totalTokens / 1000000) * 2.50; // $2.50 per 1M tokens for GPT-4o
+    
     logs.push('---');
     logs.push(`Test complete: ${successful} successful, ${failed} failed`);
+    logs.push(`Total tokens: ${totalTokens.toLocaleString()}`);
+    logs.push(`Estimated cost: $${estimatedCost.toFixed(4)}`);
     
     res.json({
       success: true,
@@ -449,6 +506,8 @@ app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
       queriesProcessed: successful + failed,
       successful,
       failed,
+      totalTokens,
+      estimatedCost,
       logs,
     });
     
