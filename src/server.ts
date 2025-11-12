@@ -362,6 +362,62 @@ app.get('/api/admin/verify/import', adminAuth, async (req, res) => {
   }
 });
 
+app.get('/api/admin/verify/results/:jobId', adminAuth, async (req, res) => {
+  try {
+    const pool = getPool();
+    const jobId = parseInt(req.params.jobId);
+    
+    // Get job info
+    const jobResult = await pool.query(
+      'SELECT id, canonicaltitle as title, soccode FROM jobs WHERE id = $1',
+      [jobId]
+    );
+    
+    if (jobResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+    
+    const job = jobResult.rows[0];
+    
+    // Get all results for this job
+    const resultsResult = await pool.query(`
+      SELECT 
+        cid.query_id,
+        aq.display_name,
+        cid.response_data,
+        cid.created_at,
+        LENGTH(cid.response_data::text) as data_size
+      FROM career_intelligence_data cid
+      INNER JOIN ai_queries aq ON aq.id = cid.query_id
+      WHERE cid.job_id = $1
+      ORDER BY aq.display_name
+    `, [jobId]);
+    
+    const results = resultsResult.rows.map(row => ({
+      query_id: row.query_id,
+      query_name: row.display_name,
+      data: row.response_data,
+      created_at: row.created_at,
+      data_size_bytes: row.data_size,
+    }));
+    
+    res.json({
+      success: true,
+      job: {
+        id: job.id,
+        title: job.title,
+        soc_code: job.soccode,
+      },
+      results_count: results.length,
+      expected_count: 38,
+      results,
+    });
+  } catch (error) {
+    logger.error('Results verification failed:', error);
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 app.get('/api/admin/verify/onet-data', adminAuth, async (req, res) => {
   try {
     // Verify embedded O*NET data

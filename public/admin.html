@@ -331,6 +331,9 @@
                 <button class="btn btn-primary" onclick="runTestJob()">
                     🧪 Run Test Job
                 </button>
+                <button class="btn btn-secondary" onclick="viewTestResults()" style="margin-left: 10px;">
+                    🔍 View Results
+                </button>
                 <button class="btn btn-primary" onclick="runWorker()" style="margin-left: 10px;">
                     Start Full Worker
                 </button>
@@ -694,6 +697,50 @@
             }
         }
         
+        let lastTestedJobId = null;
+        
+        async function viewTestResults() {
+            if (!lastTestedJobId) {
+                addLog('⚠ No test job has been run yet. Run a test job first.', 'warning');
+                return;
+            }
+            
+            try {
+                addLog(`Fetching results for job ID ${lastTestedJobId}...`, 'info');
+                const data = await fetchWithAuth(`${API_BASE}/api/admin/verify/results/${lastTestedJobId}`);
+                
+                if (data.success) {
+                    addLog(`✓ Results found: ${data.results_count}/38 queries`, 'success');
+                    addLog(`  Job: ${data.job.title} (SOC: ${data.job.soc_code})`, 'info');
+                    addLog('---', 'info');
+                    
+                    // Show summary of each result
+                    data.results.forEach((result, index) => {
+                        const sizeKB = (result.data_size_bytes / 1024).toFixed(1);
+                        addLog(`  [${index + 1}/38] ${result.query_name}`, 'info');
+                        addLog(`    ✓ Stored (${sizeKB} KB) - ${new Date(result.created_at).toLocaleString()}`, 'success');
+                        
+                        // Show a preview of the data
+                        if (result.data && result.data.data) {
+                            const preview = JSON.stringify(result.data.data).substring(0, 100);
+                            addLog(`    Preview: ${preview}...`, 'info');
+                        }
+                    });
+                    
+                    addLog('---', 'info');
+                    addLog(`✓ All ${data.results_count} results successfully stored in database!`, 'success');
+                    
+                    if (data.results_count < 38) {
+                        addLog(`⚠ Missing ${38 - data.results_count} results`, 'warning');
+                    }
+                } else {
+                    addLog(`✗ Failed to fetch results: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(`✗ Error fetching results: ${error.message}`, 'error');
+            }
+        }
+        
         async function runTestJob() {
             try {
                 addLog('🧪 Starting TEST JOB - Processing 1 job with detailed logs...', 'info');
@@ -704,11 +751,13 @@
                 const startTime = Date.now();
                 let currentQuery = 0;
                 
-                // Simulate progress
+                // Simulate progress (stop at 38)
                 const progressInterval = setInterval(() => {
-                    currentQuery++;
-                    const percent = Math.min((currentQuery / 38) * 100, 95);
-                    updateProgress(percent, `Processing query ${currentQuery}/38...`);
+                    if (currentQuery < 38) {
+                        currentQuery++;
+                        const percent = Math.min((currentQuery / 38) * 100, 95);
+                        updateProgress(percent, `Processing query ${currentQuery}/38...`);
+                    }
                 }, 2000);
                 
                 const response = await fetchWithAuth(`${API_BASE}/api/admin/worker/test`, {
@@ -722,11 +771,13 @@
                 updateProgress(100, `Test complete in ${elapsed}s!`);
                 
                 if (response.success) {
+                    lastTestedJobId = response.jobId; // Save for View Results button
                     addLog(`✓ Test job completed successfully! (${elapsed}s)`, 'success');
-                    addLog(`  Job: ${response.jobTitle || 'Unknown'}`, 'info');
+                    addLog(`  Job: ${response.jobTitle || 'Unknown'} (ID: ${response.jobId})`, 'info');
                     addLog(`  Queries processed: ${response.queriesProcessed}/38`, 'info');
                     addLog(`  Success: ${response.successful}`, 'success');
                     addLog(`  Failed: ${response.failed}`, response.failed > 0 ? 'error' : 'info');
+                    addLog(`  🔍 Click "View Results" to see stored data`, 'info');
                     
                     if (response.logs && response.logs.length > 0) {
                         addLog('Detailed logs:', 'info');
