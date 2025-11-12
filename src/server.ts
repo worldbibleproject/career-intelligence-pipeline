@@ -299,13 +299,41 @@ app.get('/api/admin/verify/database', adminAuth, async (req, res) => {
 app.get('/api/admin/verify/prompts', adminAuth, async (req, res) => {
   try {
     const pool = getPool();
-    const result = await pool.query('SELECT COUNT(*) FROM ai_queries');
-    const promptsFound = parseInt(result.rows[0].count);
+    
+    // Check ai_queries count
+    const queriesResult = await pool.query('SELECT COUNT(*) FROM ai_queries');
+    const queriesFound = parseInt(queriesResult.rows[0].count);
+    
+    // Check prompt_templates count
+    const templatesResult = await pool.query('SELECT COUNT(*) FROM prompt_templates');
+    const templatesFound = parseInt(templatesResult.rows[0].count);
+    
+    // Find missing templates
+    const missingResult = await pool.query(`
+      SELECT aq.id, aq.display_name
+      FROM ai_queries aq
+      LEFT JOIN prompt_templates pt ON aq.id = pt.id
+      WHERE pt.id IS NULL
+      ORDER BY aq.id
+    `);
+    const missing = missingResult.rows;
+    
+    // Find existing templates
+    const existingResult = await pool.query(`
+      SELECT pt.id, aq.display_name
+      FROM prompt_templates pt
+      INNER JOIN ai_queries aq ON pt.id = aq.id
+      ORDER BY pt.id
+    `);
+    const existing = existingResult.rows;
     
     res.json({
-      success: promptsFound === 38,
-      promptsFound,
+      success: queriesFound === 38 && templatesFound === 38 && missing.length === 0,
+      queriesFound,
+      templatesFound,
       expected: 38,
+      missing: missing.map(m => `${m.id} (${m.display_name})`),
+      existing: existing.map(e => `${e.id} (${e.display_name})`),
     });
   } catch (error) {
     logger.error('Prompts verification failed:', error);
