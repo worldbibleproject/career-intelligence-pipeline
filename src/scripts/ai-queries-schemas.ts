@@ -476,9 +476,484 @@ Provide age-specific, ordered steps for age bands: 12-13, 14, 15-16, 17-18.`),
     }),
   },
 
-  // Continuing with remaining queries...
-  // I'll add a subset of the most important ones to keep file size manageable
-  // The full implementation would include all 38
+  // 13. Tools & Equipment
+  {
+    id: 'tools-equipment',
+    purpose: 'List essential tools, equipment, software with typical costs.',
+    version: '1.0.0',
+    template: baseTemplate('tools-equipment', `TASK:
+List essential tools, equipment, and software used in this job with typical costs.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        items: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              category: { type: 'string' },
+              typical_cost: { type: 'number' },
+              required: { type: 'boolean' },
+            },
+            required: ['name', 'category'],
+          },
+        },
+      },
+      required: ['items'],
+    }),
+  },
+
+  // 14. Suitability
+  {
+    id: 'suitability',
+    purpose: 'Who thrives, who struggles, personality fit.',
+    version: '1.0.0',
+    template: baseTemplate('suitability', `TASK:
+Describe who thrives in this job, who struggles, and key personality traits.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        thrives: { type: 'array', items: { type: 'string' } },
+        struggles: { type: 'array', items: { type: 'string' } },
+        personality_traits: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['thrives', 'struggles', 'personality_traits'],
+    }),
+  },
+
+  // 15. Faith Alignment
+  {
+    id: 'faith-alignment',
+    purpose: 'Christian worldview compatibility analysis.',
+    version: '1.0.0',
+    template: baseTemplate('faith-alignment', `TASK:
+Assess this job's compatibility with Christian faith values. Provide alignment_score (0-10), opportunities for ministry/service, and potential conflicts.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        alignment_score: { type: 'integer', minimum: 0, maximum: 10 },
+        opportunities: { type: 'array', items: { type: 'string' } },
+        potential_conflicts: { type: 'array', items: { type: 'string' } },
+        notes: { type: 'string' },
+      },
+      required: ['alignment_score', 'opportunities', 'potential_conflicts'],
+    }),
+  },
+
+  // 16. Risks
+  {
+    id: 'risks',
+    purpose: 'Physical, mental, financial, and career risks.',
+    version: '1.0.0',
+    template: baseTemplate('risks', `TASK:
+Identify physical, mental, financial, and career risks with severity scores (0-10).`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        physical_risks: { type: 'array', items: { type: 'object', properties: { risk: { type: 'string' }, severity: { type: 'integer', minimum: 0, maximum: 10 } }, required: ['risk', 'severity'] } },
+        mental_risks: { type: 'array', items: { type: 'object', properties: { risk: { type: 'string' }, severity: { type: 'integer', minimum: 0, maximum: 10 } }, required: ['risk', 'severity'] } },
+        financial_risks: { type: 'array', items: { type: 'string' } },
+        career_risks: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['physical_risks', 'mental_risks'],
+    }),
+  },
+
+  // 17. Geographic Variations
+  {
+    id: 'geographic-variations',
+    purpose: 'Regional differences in demand, pay, culture.',
+    version: '1.0.0',
+    template: baseTemplate('geographic-variations', `TASK:
+Describe how this job varies by region (urban vs rural, different states/areas).`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        variations: { type: 'array', items: { type: 'object', properties: { region: { type: 'string' }, demand: { type: 'string' }, pay_difference: { type: 'string' }, notes: { type: 'string' } }, required: ['region'] } },
+      },
+      required: ['variations'],
+    }),
+  },
+
+  // 18. Industry Context
+  {
+    id: 'industry-context',
+    purpose: 'Industry trends, major employers, market dynamics.',
+    version: '1.0.0',
+    template: baseTemplate('industry-context', `TASK:
+Provide industry trends, major employers, and market dynamics for this occupation.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        trends: { type: 'array', items: { type: 'string' } },
+        major_employers: { type: 'array', items: { type: 'string' } },
+        market_dynamics: { type: 'string' },
+      },
+      required: ['trends'],
+    }),
+  },
+
+  // 19. Provenance
+  {
+    id: 'provenance',
+    purpose: 'Data sources and methodology documentation.',
+    version: '1.0.0',
+    template: baseTemplate('provenance', `TASK:
+Document data sources, methodology, and confidence for this career analysis.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        primary_sources: { type: 'array', items: { type: 'string' } },
+        methodology_notes: { type: 'string' },
+        confidence_level: { type: 'number', minimum: 0, maximum: 1 },
+      },
+      required: ['primary_sources', 'confidence_level'],
+    }),
+  },
+
+  // 20. Safety Analysis
+  {
+    id: 'safety-analysis',
+    purpose: 'Workplace safety, injury rates, protective measures.',
+    version: '1.0.0',
+    template: baseTemplate('safety-analysis', `TASK:
+Analyze workplace safety: injury rates, common hazards, protective equipment, safety training.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        injury_rate_score: { type: 'integer', minimum: 0, maximum: 10 },
+        common_hazards: { type: 'array', items: { type: 'string' } },
+        protective_equipment: { type: 'array', items: { type: 'string' } },
+        safety_training_required: { type: 'boolean' },
+      },
+      required: ['injury_rate_score', 'common_hazards'],
+    }),
+  },
+
+  // 21. Regional Licensing
+  {
+    id: 'regional-licensing',
+    purpose: 'State-by-state licensing variations.',
+    version: '1.0.0',
+    template: baseTemplate('regional-licensing', `TASK:
+Provide detailed state-by-state licensing requirements and reciprocity information.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        has_reciprocity: { type: 'boolean' },
+        state_details: { type: 'array', items: { type: 'object', properties: { state: { type: 'string' }, requirements: { type: 'string' } }, required: ['state'] } },
+      },
+      required: ['has_reciprocity'],
+    }),
+  },
+
+  // 22. Enhanced Economics
+  {
+    id: 'enhanced-economics',
+    purpose: 'Detailed economic analysis including benefits, bonuses, total compensation.',
+    version: '1.0.0',
+    template: baseTemplate('enhanced-economics', `TASK:
+Provide comprehensive compensation: base salary, benefits value, bonuses, total compensation packages.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        base_salary_median: { type: 'number' },
+        benefits_value_annual: { type: 'number' },
+        bonus_potential: { type: 'string' },
+        total_comp_median: { type: 'number' },
+      },
+      required: ['base_salary_median'],
+    }),
+  },
+
+  // 23. Advanced Family Planning
+  {
+    id: 'advanced-family-planning',
+    purpose: 'Long-term family economics, multiple children, college savings.',
+    version: '1.0.0',
+    template: baseTemplate('advanced-family-planning', `TASK:
+Analyze long-term family affordability: raising multiple children, saving for college, family milestones.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        children_affordable: { type: 'integer' },
+        college_savings_feasible: { type: 'boolean' },
+        family_milestones: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['children_affordable', 'college_savings_feasible'],
+    }),
+  },
+
+  // 24. College Alternatives
+  {
+    id: 'college-alternatives',
+    purpose: 'Non-degree pathways: bootcamps, apprenticeships, self-study.',
+    version: '1.0.0',
+    template: baseTemplate('college-alternatives', `TASK:
+List alternative pathways to this career without a 4-year degree.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        alternatives: { type: 'array', items: { type: 'object', properties: { pathway: { type: 'string' }, duration: { type: 'string' }, cost: { type: 'number' }, viability: { type: 'string' } }, required: ['pathway'] } },
+      },
+      required: ['alternatives'],
+    }),
+  },
+
+  // 25. Portfolio Planning
+  {
+    id: 'portfolio-planning',
+    purpose: 'Career combinations, side income, skill stacking.',
+    version: '1.0.0',
+    template: baseTemplate('portfolio-planning', `TASK:
+Suggest complementary careers, side businesses, and skill combinations.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        complementary_careers: { type: 'array', items: { type: 'string' } },
+        side_income_ideas: { type: 'array', items: { type: 'string' } },
+        skill_stacks: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['complementary_careers'],
+    }),
+  },
+
+  // 26. Daily Life
+  {
+    id: 'daily-life',
+    purpose: 'Typical day, schedule, work environment.',
+    version: '1.0.0',
+    template: baseTemplate('daily-life', `TASK:
+Describe a typical workday including schedule, environment, and daily activities.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        typical_schedule: { type: 'string' },
+        work_environment: { type: 'string' },
+        daily_activities: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['typical_schedule', 'daily_activities'],
+    }),
+  },
+
+  // 27. Lesson Plans
+  {
+    id: 'lesson-plans',
+    purpose: 'Educational resources for teaching about this career.',
+    version: '1.0.0',
+    template: baseTemplate('lesson-plans', `TASK:
+Create lesson plan ideas for teaching students about this career (grades 6-12).`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        lessons: { type: 'array', items: { type: 'object', properties: { grade_level: { type: 'string' }, title: { type: 'string' }, activities: { type: 'array', items: { type: 'string' } } }, required: ['grade_level', 'title'] } },
+      },
+      required: ['lessons'],
+    }),
+  },
+
+  // 28. Market Saturation
+  {
+    id: 'market-saturation',
+    purpose: 'Competition analysis, job availability, market conditions.',
+    version: '1.0.0',
+    template: baseTemplate('market-saturation', `TASK:
+Analyze market saturation: competition level, job availability, barriers to entry.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        saturation_score: { type: 'integer', minimum: 0, maximum: 10 },
+        competition_level: { type: 'string' },
+        job_availability: { type: 'string' },
+        barriers_to_entry: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['saturation_score', 'competition_level'],
+    }),
+  },
+
+  // 29. Accessibility
+  {
+    id: 'accessibility',
+    purpose: 'Disability accommodations, accessibility considerations.',
+    version: '1.0.0',
+    template: baseTemplate('accessibility', `TASK:
+Assess accessibility for people with various disabilities and available accommodations.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        physical_accessibility: { type: 'string' },
+        accommodations_available: { type: 'array', items: { type: 'string' } },
+        considerations: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['physical_accessibility'],
+    }),
+  },
+
+  // 30. Unionization
+  {
+    id: 'unionization',
+    purpose: 'Union presence, collective bargaining, labor organization.',
+    version: '1.0.0',
+    template: baseTemplate('unionization', `TASK:
+Describe union presence, major unions, benefits of membership, typical contracts.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        union_presence: { type: 'string' },
+        major_unions: { type: 'array', items: { type: 'string' } },
+        membership_rate: { type: 'number', minimum: 0, maximum: 100 },
+        benefits: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['union_presence'],
+    }),
+  },
+
+  // 31. Career Ladders
+  {
+    id: 'career-ladders',
+    purpose: 'Advancement paths, promotion timeline, career progression.',
+    version: '1.0.0',
+    template: baseTemplate('career-ladders', `TASK:
+Map career progression: entry level, mid-level, senior positions with timelines and requirements.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        levels: { type: 'array', items: { type: 'object', properties: { level: { type: 'string' }, typical_years: { type: 'integer' }, requirements: { type: 'array', items: { type: 'string' } } }, required: ['level'] } },
+      },
+      required: ['levels'],
+    }),
+  },
+
+  // 32. Remote Work
+  {
+    id: 'remote-work',
+    purpose: 'Work-from-home potential, hybrid options, digital nomad viability.',
+    version: '1.0.0',
+    template: baseTemplate('remote-work', `TASK:
+Assess remote work potential: fully remote (%), hybrid options, tools needed.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        remote_potential_pct: { type: 'integer', minimum: 0, maximum: 100 },
+        hybrid_common: { type: 'boolean' },
+        tools_needed: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['remote_potential_pct'],
+    }),
+  },
+
+  // 33. Time Flexibility
+  {
+    id: 'time-flexibility',
+    purpose: 'Schedule flexibility, shift options, work-life balance.',
+    version: '1.0.0',
+    template: baseTemplate('time-flexibility', `TASK:
+Evaluate schedule flexibility: shift options, typical hours, work-life balance score (0-10).`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        flexibility_score: { type: 'integer', minimum: 0, maximum: 10 },
+        shift_options: { type: 'array', items: { type: 'string' } },
+        typical_hours_per_week: { type: 'integer' },
+      },
+      required: ['flexibility_score', 'typical_hours_per_week'],
+    }),
+  },
+
+  // 34. Entrepreneurship
+  {
+    id: 'entrepreneurship',
+    purpose: 'Self-employment potential, business ownership, freelancing.',
+    version: '1.0.0',
+    template: baseTemplate('entrepreneurship', `TASK:
+Assess self-employment viability: startup costs, business model, success rate.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        viability_score: { type: 'integer', minimum: 0, maximum: 10 },
+        startup_cost_low: { type: 'number' },
+        startup_cost_high: { type: 'number' },
+        business_models: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['viability_score'],
+    }),
+  },
+
+  // 35. Side Hustle
+  {
+    id: 'side-hustle',
+    purpose: 'Part-time income potential, gig economy, freelance opportunities.',
+    version: '1.0.0',
+    template: baseTemplate('side-hustle', `TASK:
+Evaluate side hustle potential: part-time income, hours needed, platforms/marketplaces.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        feasibility_score: { type: 'integer', minimum: 0, maximum: 10 },
+        part_time_income_range: { type: 'string' },
+        hours_per_week: { type: 'integer' },
+        platforms: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['feasibility_score'],
+    }),
+  },
+
+  // 36. Retirement Planning
+  {
+    id: 'retirement-planning',
+    purpose: 'Late-career options, retirement timing, pension availability.',
+    version: '1.0.0',
+    template: baseTemplate('retirement-planning', `TASK:
+Analyze retirement considerations: typical retirement age, pension/401k availability, late-career options.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        typical_retirement_age: { type: 'integer' },
+        pension_common: { type: 'boolean' },
+        retirement_savings_outlook: { type: 'string' },
+        late_career_options: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['typical_retirement_age'],
+    }),
+  },
+
+  // 37. Income Stability
+  {
+    id: 'income-stability',
+    purpose: 'Earnings consistency, seasonality, economic sensitivity.',
+    version: '1.0.0',
+    template: baseTemplate('income-stability', `TASK:
+Assess income stability: consistency score (0-10), seasonal variations, recession resistance.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        stability_score: { type: 'integer', minimum: 0, maximum: 10 },
+        seasonal_variations: { type: 'string' },
+        recession_resistance: { type: 'string' },
+      },
+      required: ['stability_score'],
+    }),
+  },
+
+  // 38. Job Satisfaction
+  {
+    id: 'job-satisfaction',
+    purpose: 'Worker satisfaction, fulfillment, burnout rates.',
+    version: '1.0.0',
+    template: baseTemplate('job-satisfaction', `TASK:
+Analyze job satisfaction: overall score (0-10), fulfillment factors, burnout risk, retention rates.`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        satisfaction_score: { type: 'integer', minimum: 0, maximum: 10 },
+        fulfillment_factors: { type: 'array', items: { type: 'string' } },
+        burnout_risk: { type: 'string' },
+        typical_tenure_years: { type: 'integer' },
+      },
+      required: ['satisfaction_score', 'fulfillment_factors'],
+    }),
+  },
 
 ];
 
