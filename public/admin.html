@@ -626,11 +626,17 @@
                 const data = await fetchWithAuth(`${API_BASE}/api/admin/verify/prompts`);
                 
                 if (data.success) {
-                    addLog(`✓ Prompts verified: ${data.promptsFound}/38 prompts installed`, 'success');
-                    if (data.promptsFound === 38) {
+                    addLog(`✓ Prompts verified: ${data.templatesFound}/38 templates installed`, 'success');
+                    addLog(`  Queries defined: ${data.queriesFound}/38`, 'info');
+                    
+                    if (data.missing && data.missing.length > 0) {
+                        addLog(`  ⚠ Missing templates: ${data.missing.join(', ')}`, 'warning');
+                    } else if (data.templatesFound === 38) {
                         addLog('  ✓ All 38 AI query templates are installed!', 'success');
-                    } else {
-                        addLog(`  ⚠ Expected 38, found ${data.promptsFound}`, 'warning');
+                    }
+                    
+                    if (data.existing && data.existing.length > 0) {
+                        addLog(`  Installed: ${data.existing.slice(0, 5).join(', ')}${data.existing.length > 5 ? '...' : ''}`, 'info');
                     }
                 } else {
                     addLog(`✗ Verification failed: ${data.message}`, 'error');
