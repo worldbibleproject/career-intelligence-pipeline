@@ -171,10 +171,11 @@ Include value_tags like "debt_free","early_income","service","work_life_balance"
   // 3. Task Analysis
   {
     id: 'task-analysis',
-    purpose: 'Score 2–4 core tasks across seven 0.0–1.0 dimensions.',
-    version: '1.0.0',
+    purpose: 'Score 4–8 core tasks across seven 0.0–1.0 dimensions.',
+    version: '1.1.0',
     template: baseTemplate('task-analysis', `TASK:
-Pick 2–4 essential tasks and score each: manual, tool_use, paperwork, pattern_rec, creative, empathy_ethics, compliance (0.0–1.0).`),
+Pick 4–8 essential tasks (prioritize the most important/frequent ones) and score each: manual, tool_use, paperwork, pattern_rec, creative, empathy_ethics, compliance (0.0–1.0).
+Provide a diverse range of tasks that represent the full scope of this occupation.`),
     schema: createTopLevelSchema({
       type: 'object',
       properties: {
@@ -195,8 +196,8 @@ Pick 2–4 essential tasks and score each: manual, tool_use, paperwork, pattern_
             required: ['task', 'manual', 'tool_use', 'paperwork', 'pattern_rec', 'creative', 'empathy_ethics', 'compliance'],
             additionalProperties: false,
           },
-          minItems: 2,
-          maxItems: 4,
+          minItems: 4,
+          maxItems: 8,
         },
       },
       required: ['tasks'],
@@ -487,10 +488,11 @@ Provide age-specific, ordered steps for age bands: 12-13, 14, 15-16, 17-18.`),
   // 13. Tools & Equipment
   {
     id: 'tools-equipment',
-    purpose: 'List essential tools, equipment, software with typical costs.',
-    version: '1.0.0',
+    purpose: 'List essential tools, equipment, software with typical costs and skill requirements.',
+    version: '1.1.0',
     template: baseTemplate('tools-equipment', `TASK:
-List essential tools, equipment, and software used in this job with typical costs.`),
+List essential tools, equipment, and software used in this job with typical costs.
+For each item, indicate the skill_level required to master it: 'low' (days/weeks), 'medium' (months), or 'high' (years).`),
     schema: createTopLevelSchema({
       type: 'object',
       properties: {
@@ -503,8 +505,9 @@ List essential tools, equipment, and software used in this job with typical cost
               category: { type: 'string' },
               typical_cost: { type: 'number' },
               required: { type: 'boolean' },
+              skill_level: { type: 'string', enum: ['low', 'medium', 'high'] },
             },
-            required: ['name', 'category'],
+            required: ['name', 'category', 'skill_level'],
           },
         },
       },
@@ -571,16 +574,48 @@ Identify physical, mental, financial, and career risks with severity scores (0-1
   // 17. Geographic Variations
   {
     id: 'geographic-variations',
-    purpose: 'Regional differences in demand, pay, culture.',
-    version: '1.0.0',
+    purpose: 'Regional differences in demand, pay, culture, plus top metro areas.',
+    version: '1.1.0',
     template: baseTemplate('geographic-variations', `TASK:
-Describe how this job varies by region (urban vs rural, different states/areas).`),
+Describe how this job varies by region (urban vs rural, different states/areas).
+Also provide top_metros: List 5-10 major US metro areas where this occupation thrives, with:
+- city: Metro area name (e.g., "San Francisco, CA" or "Austin, TX")
+- demand_level: high/medium/low
+- salary_range: Typical salary range in that metro (e.g., "$75,000-$120,000")
+- notes: Any unique characteristics of this job in that metro`),
     schema: createTopLevelSchema({
       type: 'object',
       properties: {
-        variations: { type: 'array', items: { type: 'object', properties: { region: { type: 'string' }, demand: { type: 'string' }, pay_difference: { type: 'string' }, notes: { type: 'string' } }, required: ['region'] } },
+        variations: { 
+          type: 'array', 
+          items: { 
+            type: 'object', 
+            properties: { 
+              region: { type: 'string' }, 
+              demand: { type: 'string' }, 
+              pay_difference: { type: 'string' }, 
+              notes: { type: 'string' } 
+            }, 
+            required: ['region'] 
+          } 
+        },
+        top_metros: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              city: { type: 'string' },
+              demand_level: { type: 'string', enum: ['high', 'medium', 'low'] },
+              salary_range: { type: 'string' },
+              notes: { type: 'string' },
+            },
+            required: ['city', 'demand_level', 'salary_range'],
+          },
+          minItems: 5,
+          maxItems: 10,
+        },
       },
-      required: ['variations'],
+      required: ['variations', 'top_metros'],
     }),
   },
 
@@ -820,14 +855,27 @@ Describe union presence, major unions, benefits of membership, typical contracts
   // 31. Career Ladders
   {
     id: 'career-ladders',
-    purpose: 'Advancement paths, promotion timeline, career progression.',
-    version: '1.0.0',
+    purpose: 'Advancement paths, promotion timeline, career progression with salary increases.',
+    version: '1.1.0',
     template: baseTemplate('career-ladders', `TASK:
-Map career progression: entry level, mid-level, senior positions with timelines and requirements.`),
+Map career progression: entry level, mid-level, senior positions with timelines and requirements.
+For each level, include salary_increase_pct: the typical percentage salary increase from the previous level (e.g., 15 means 15% increase).`),
     schema: createTopLevelSchema({
       type: 'object',
       properties: {
-        levels: { type: 'array', items: { type: 'object', properties: { level: { type: 'string' }, typical_years: { type: 'integer' }, requirements: { type: 'array', items: { type: 'string' } } }, required: ['level'] } },
+        levels: { 
+          type: 'array', 
+          items: { 
+            type: 'object', 
+            properties: { 
+              level: { type: 'string' }, 
+              typical_years: { type: 'integer' }, 
+              requirements: { type: 'array', items: { type: 'string' } },
+              salary_increase_pct: { type: 'number', minimum: 0, maximum: 200 },
+            }, 
+            required: ['level', 'salary_increase_pct'] 
+          } 
+        },
       },
       required: ['levels'],
     }),
