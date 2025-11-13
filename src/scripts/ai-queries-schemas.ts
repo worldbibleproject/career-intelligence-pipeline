@@ -1,5 +1,5 @@
 /**
- * JSON Schema definitions for all 38 AI queries
+ * JSON Schema definitions for all 39 AI queries
  * Separated for maintainability
  */
 
@@ -104,6 +104,14 @@ export const runPolicies: RunPolicy[] = [
     max_tokens: 3500,
     stop: null,
     notes: 'Slightly more freedom for lesson plans / portfolio ideas, still JSON-structured.',
+  },
+  {
+    id: 'ai-analysis.extended',
+    temperature: 0.3,
+    top_p: 0.9,
+    max_tokens: 4500,
+    stop: null,
+    notes: 'Extended token limit for AI trajectory analysis (1000-1500 word responses).',
   },
 ];
 
@@ -952,6 +960,79 @@ Analyze job satisfaction: overall score (0-10), fulfillment factors, burnout ris
         typical_tenure_years: { type: 'integer' },
       },
       required: ['satisfaction_score', 'fulfillment_factors'],
+    }),
+  },
+
+  // 39. AI Trajectory Analysis
+  {
+    id: 'ai-trajectory-analysis',
+    purpose: 'Deep analysis of AI impact on this career over 1,3,5,7,10 year horizons with takeover percentages.',
+    version: '1.0.0',
+    template: baseTemplate('ai-trajectory-analysis', `TASK:
+Provide a comprehensive, objective analysis of how artificial intelligence will impact this specific occupation. Your response must be 1000-1500 words and include:
+
+1. CURRENT STATE (2025): Describe current AI capabilities affecting this job TODAY. What AI tools/systems are already in use? How are they being integrated? Be specific about actual technologies.
+
+2. AI CAPABILITY ASSESSMENT: Analyze which job tasks are susceptible to AI automation and which require irreplaceable human elements. Consider: decision-making complexity, physical requirements, emotional intelligence needs, creative demands, ethical considerations.
+
+3. TRAJECTORY ANALYSIS:
+   - 1 YEAR (2026): What AI advancements are realistically expected? How will they affect daily work?
+   - 3 YEARS (2028): What systems will likely be deployed? What tasks will be automated?
+   - 5 YEARS (2030): Major shifts in job structure? New AI-human collaboration models?
+   - 7 YEARS (2032): Transformation of role requirements? Skill set changes?
+   - 10 YEARS (2035): Long-term industry restructuring? Job evolution or elimination scenarios?
+
+4. AI TAKEOVER PERCENTAGE: For each time horizon (1,3,5,7,10 years), provide:
+   - takeover_pct: Percentage of current job tasks/functions that AI will handle (0-100)
+   - confidence_level: Your confidence in this prediction (low/medium/high)
+   - key_factors: What drives this percentage (array of 2-4 factors)
+
+5. INDUSTRY-SPECIFIC CONTEXT: How does this industry's adoption rate, regulatory environment, and economic incentives affect AI integration speed?
+
+6. HUMAN ADVANTAGE AREAS: What aspects of this job will remain human-dominated and why?
+
+7. ADAPTATION STRATEGIES: What should current/future workers do to remain valuable?
+
+Be HIGHLY OBJECTIVE but HIGHLY HONEST. Simulate realistic AI capability growth based on current trajectories. Don't sugarcoat or catastrophize—provide data-driven, nuanced analysis. Consider both optimistic and pessimistic scenarios where appropriate.
+
+Return as JSON with data.analysis (string, 1000-1500 words), data.timeline (array of 5 objects with year, takeover_pct, confidence_level, key_factors), data.summary (object with current_impact, human_advantage, adaptation_priority).`),
+    schema: createTopLevelSchema({
+      type: 'object',
+      properties: {
+        analysis: { 
+          type: 'string',
+          minLength: 1000,
+          maxLength: 2000,
+          description: 'Comprehensive 1000-1500 word analysis'
+        },
+        timeline: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              year: { type: 'integer' },
+              horizon_label: { type: 'string' },
+              takeover_pct: { type: 'integer', minimum: 0, maximum: 100 },
+              confidence_level: { type: 'string', enum: ['low', 'medium', 'high'] },
+              key_factors: { type: 'array', items: { type: 'string' }, minItems: 2, maxItems: 4 },
+            },
+            required: ['year', 'horizon_label', 'takeover_pct', 'confidence_level', 'key_factors'],
+          },
+          minItems: 5,
+          maxItems: 5,
+        },
+        summary: {
+          type: 'object',
+          properties: {
+            current_impact: { type: 'string', description: 'Current AI impact in 1-2 sentences' },
+            human_advantage: { type: 'string', description: 'Key human advantages that resist automation' },
+            adaptation_priority: { type: 'string', enum: ['critical', 'high', 'moderate', 'low'] },
+          },
+          required: ['current_impact', 'human_advantage', 'adaptation_priority'],
+        },
+      },
+      required: ['analysis', 'timeline', 'summary'],
+      additionalProperties: false,
     }),
   },
 

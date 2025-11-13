@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * ai-queries.ts
- * Seeds all 38 prompt templates and run policies into database
+ * Seeds all 39 prompt templates and run policies into database
  */
 
 import { getPool, closePool } from '../db/connection.js';

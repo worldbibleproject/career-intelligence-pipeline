@@ -72,7 +72,7 @@ async function main() {
       ON CONFLICT (code) DO NOTHING;
     `);
 
-    // AI queries catalog - Define all 38 query types
+    // AI queries catalog - Define all 39 query types
     await execSQL('AI queries catalog', `
       CREATE TABLE IF NOT EXISTS ai_queries (
         id           TEXT PRIMARY KEY,
@@ -118,7 +118,8 @@ async function main() {
         ('side-hustle', 'Side Hustle', 'job_side_hustle'),
         ('retirement-planning', 'Retirement Planning', 'job_retirement_planning'),
         ('income-stability', 'Income Stability', 'job_income_stability'),
-        ('job-satisfaction', 'Job Satisfaction', 'job_satisfaction')
+        ('job-satisfaction', 'Job Satisfaction', 'job_satisfaction'),
+        ('ai-trajectory-analysis', 'AI Trajectory Analysis', 'job_ai_trajectory')
       ON CONFLICT (id) DO NOTHING;
     `);
 
