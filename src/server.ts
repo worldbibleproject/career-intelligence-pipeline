@@ -328,10 +328,10 @@ app.get('/api/admin/verify/prompts', adminAuth, async (req, res) => {
     const existing = existingResult.rows;
     
     res.json({
-      success: queriesFound === 38 && templatesFound === 38 && missing.length === 0,
+      success: queriesFound === 39 && templatesFound === 39 && missing.length === 0,
       queriesFound,
       templatesFound,
-      expected: 38,
+      expected: 39,
       missing: missing.map(m => `${m.id} (${m.display_name})`),
       existing: existing.map(e => `${e.id} (${e.display_name})`),
     });
@@ -409,7 +409,7 @@ app.get('/api/admin/verify/results/:jobId', adminAuth, async (req, res) => {
         soc_code: job.soccode,
       },
       results_count: results.length,
-      expected_count: 38,
+      expected_count: 39,
       results,
     });
   } catch (error) {
