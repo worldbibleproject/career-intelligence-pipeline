@@ -720,7 +720,7 @@
                     // Show summary of each result
                     data.results.forEach((result, index) => {
                         const sizeKB = (result.data_size_bytes / 1024).toFixed(1);
-                        addLog(`  [${index + 1}/38] ${result.query_name}`, 'info');
+                        addLog(`  [${index + 1}/39] ${result.query_name}`, 'info');
                         addLog(`    ✓ Stored (${sizeKB} KB) - ${new Date(result.created_at).toLocaleString()}`, 'success');
                         
                         // Show a preview of the data
@@ -733,8 +733,8 @@
                     addLog('---', 'info');
                     addLog(`✓ All ${data.results_count} results successfully stored in database!`, 'success');
                     
-                    if (data.results_count < 38) {
-                        addLog(`⚠ Missing ${38 - data.results_count} results`, 'warning');
+                    if (data.results_count < 39) {
+                        addLog(`⚠ Missing ${39 - data.results_count} results`, 'warning');
                     }
                 } else {
                     addLog(`✗ Failed to fetch results: ${data.message}`, 'error');
@@ -747,19 +747,19 @@
         async function runTestJob() {
             try {
                 addLog('🧪 Starting TEST JOB - Processing 1 job with detailed logs...', 'info');
-                addLog('This will run all 38 AI queries for a single job', 'info');
+                addLog('This will run all 39 AI queries for a single job', 'info');
                 showProgress('Running Test Job');
                 updateProgress(0, 'Initializing test...');
                 
                 const startTime = Date.now();
                 let currentQuery = 0;
                 
-                // Simulate progress (stop at 38)
+                // Simulate progress (stop at 39)
                 const progressInterval = setInterval(() => {
-                    if (currentQuery < 38) {
+                    if (currentQuery < 39) {
                         currentQuery++;
-                        const percent = Math.min((currentQuery / 38) * 100, 95);
-                        updateProgress(percent, `Processing query ${currentQuery}/38...`);
+                        const percent = Math.min((currentQuery / 39) * 100, 95);
+                        updateProgress(percent, `Processing query ${currentQuery}/39...`);
                     }
                 }, 2000);
                 
@@ -777,7 +777,7 @@
                     lastTestedJobId = response.jobId; // Save for View Results button
                     addLog(`✓ Test job completed successfully! (${elapsed}s)`, 'success');
                     addLog(`  Job: ${response.jobTitle || 'Unknown'} (ID: ${response.jobId})`, 'info');
-                    addLog(`  Queries processed: ${response.queriesProcessed}/38`, 'info');
+                    addLog(`  Queries processed: ${response.queriesProcessed}/39`, 'info');
                     addLog(`  Success: ${response.successful}`, 'success');
                     addLog(`  Failed: ${response.failed}`, response.failed > 0 ? 'error' : 'info');
                     addLog(`  🔍 Click "View Results" to see stored data`, 'info');
