@@ -1017,110 +1017,38 @@ Analyze job satisfaction: overall score (0-10), fulfillment factors, burnout ris
     purpose: 'BRUTALLY HONEST deep analysis of AI impact with month-by-month, year-by-year trajectory thinking.',
     version: '2.0.0',
     template: baseTemplate('ai-trajectory-analysis', `TASK:
-Provide a BRUTALLY HONEST, deeply researched analysis of how AI will impact {{canonical_title}}. You must be RADICALLY TRANSPARENT about automation risks. This analysis must be 1200-1800 words.
+Provide a BRUTALLY HONEST analysis of how AI will impact {{canonical_title}}. Be RADICALLY TRANSPARENT about automation risks.
 
-🎯 CRITICAL CONTEXT:
-- We are in November 2025. AI has progressed EXPONENTIALLY since GPT-4 (March 2023).
-- GPT-4o, Claude 3.5 Sonnet, Gemini 2.0, and multimodal AI are NOW in production.
-- AI can now: write code, analyze images/video, generate realistic voices, automate workflows, handle customer service, create marketing content, analyze legal documents, diagnose medical conditions from scans, and more.
-- The pace is ACCELERATING. What took 5 years (2018-2023) might take 18 months (2025-2026).
+CONTEXT: We are in November 2025. AI has advanced exponentially since GPT-4 (March 2023). GPT-4o, Claude 3.5, Gemini 2.0 are in production. AI can now write code, analyze images/video, automate workflows, handle customer service, and more. The pace is ACCELERATING.
 
-📊 YOUR ANALYSIS MUST INCLUDE:
+YOUR ANALYSIS:
 
-1. **CURRENT STATE (November 2025)** - 200 words:
-   - What SPECIFIC AI tools are being used in {{canonical_title}} RIGHT NOW?
-   - Name actual products: ChatGPT, Claude, Copilot, Midjourney, Runway, etc.
-   - What % of workers in this field are already using AI daily? Weekly?
-   - Which tasks are ALREADY being automated TODAY?
-   - Be SPECIFIC: "X% of [specific task] is now handled by [specific AI tool]"
+Write a comprehensive essay (800-1500 words) covering:
 
-2. **AI CAPABILITY REALITY CHECK** - 200 words:
-   - HONESTLY assess: Which parts of {{canonical_title}} are:
-     * EASILY AUTOMATED (routine, digital, pattern-based)
-     * PARTIALLY AUTOMATABLE (AI assists, human verifies)
-     * HARD TO AUTOMATE (physical, emotional, creative, ethical)
-     * IMPOSSIBLE TO AUTOMATE (for now)
-   - Don't be optimistic. If a task CAN be automated, it WILL be.
-   - Economic pressure is REAL. If AI is 10x cheaper, businesses WILL adopt it.
+1. CURRENT STATE: What AI tools are being used in {{canonical_title}} TODAY (Nov 2025)? Name specific tools like ChatGPT, Claude, Copilot. What % of workers use AI? What tasks are automated NOW?
 
-3. **MONTH-BY-MONTH TRAJECTORY** - 400 words:
-   Think like an AI researcher tracking progress:
-   
-   **2026 (12 months out)**:
-   - What AI models will be released? (GPT-5? Claude 4? Gemini 3?)
-   - What NEW capabilities will emerge? (longer context? better reasoning? multimodal fusion?)
-   - How will {{canonical_title}} workers experience this?
-   - Takeover estimate: X% of tasks
-   
-   **2028 (3 years out)**:
-   - Extrapolate from current velocity. If AI improved 10x in 2 years (2023-2025), what happens by 2028?
-   - What workflows will be COMPLETELY automated?
-   - What new AI-human collaboration models emerge?
-   - How many jobs in this field are eliminated vs. transformed?
-   - Takeover estimate: X% of tasks
-   
-   **2030 (5 years out)**:
-   - AGI timeline? Probably not, but NARROW AI will be EXTREMELY capable.
-   - What does a typical day look like for a {{canonical_title}} worker?
-   - Are there FEWER jobs? Same number but different skills? More jobs?
-   - Takeover estimate: X% of tasks
-   
-   **2032 (7 years out)**:
-   - Compounding effects. 7 years of exponential AI growth.
-   - Is {{canonical_title}} unrecognizable? A niche specialty? Gone?
-   - What human skills are now PREMIUM (non-automatable)?
-   - Takeover estimate: X% of tasks
-   
-   **2035 (10 years out)**:
-   - Long-term structural changes.
-   - Is this job title even used anymore?
-   - What happened to the workers? Retrained? Unemployed? Elevated to higher roles?
-   - Takeover estimate: X% of tasks
+2. AUTOMATION ASSESSMENT: Which tasks are EASILY automated (routine/digital), PARTIALLY automatable (AI assists), HARD to automate (physical/emotional), or IMPOSSIBLE (for now)? Be realistic: if it CAN be automated, it WILL be. Economic pressure is real.
 
-4. **TAKEOVER PERCENTAGES - BE HONEST** - 200 words:
-   For EACH year (2026, 2028, 2030, 2032, 2035), provide:
-   - **takeover_pct**: 0-100. Don't lowball this. If 60% of tasks are routine, say 60%.
-   - **confidence_level**: low/medium/high. Be honest about uncertainty.
-   - **key_factors**: 2-4 specific reasons. Examples:
-     * "LLM context windows reached 1M tokens, enabling full document analysis"
-     * "Computer vision accuracy exceeded human radiologists"
-     * "Economic incentive: AI costs $0.10/hour vs human $50/hour"
-     * "Regulatory barriers removed in 2027 legislation"
+3. TRAJECTORY (5 time horizons):
+- 2026 (1yr): New AI models (GPT-5?). How does {{canonical_title}} change?
+- 2028 (3yr): If AI improved 10x in 2023-2025, what by 2028? What workflows are fully automated?
+- 2030 (5yr): Narrow AI extremely capable. Typical workday for {{canonical_title}}?
+- 2032 (7yr): 7 years exponential growth. Is this job unrecognizable? Gone?
+- 2035 (10yr): Is this job title used? What happened to workers?
 
-5. **INDUSTRY ADOPTION REALITY** - 150 words:
-   - Will this industry adopt AI FAST or SLOW?
-   - What are the ECONOMIC incentives? (Huge cost savings = fast adoption)
-   - What are the BARRIERS? (Regulation, safety, liability, unions)
-   - Compare to other industries: Healthcare (slow), Tech (fast), Finance (medium)
+4. ECONOMIC REALITY: Will industry adopt FAST or SLOW? Cost savings vs barriers (regulation, unions). Compare to other industries.
 
-6. **HUMAN ADVANTAGE - SHRINKING OVER TIME** - 150 words:
-   - What can humans do that AI CAN'T (yet)?
-   - Be realistic: Many "human-only" skills are being automated NOW.
-   - Physical presence? (Robots improving)
-   - Empathy? (AI can simulate convincingly)
-   - Creativity? (AI generates art, music, code)
-   - What's LEFT that's truly human?
+5. HUMAN ADVANTAGE: What's LEFT that's truly human? Physical presence (robots improving), empathy (AI simulates), creativity (AI generates)?
 
-7. **SURVIVAL STRATEGIES - BRUTAL HONESTY** - 150 words:
-   - If you're entering this field NOW, should you?
-   - If you're IN this field, what MUST you do?
-   - Be honest: "This job has 10 good years left, then...?"
-   - Upskilling paths: What skills are AI-RESISTANT?
-   - Career pivots: Where should people go?
+6. SURVIVAL STRATEGY: Should you enter this field? If in it, what must you do? Upskilling paths? Career pivots?
 
-🚨 CRITICAL INSTRUCTIONS:
-- Do NOT sugarcoat. Workers need TRUTH, not comfort.
-- Do NOT catastrophize. Be data-driven, not alarmist.
-- Use REAL examples: "Like how [X job] automated in [Y years]"
-- Reference ACTUAL AI progress: GPT-3 (2020) → GPT-4 (2023) → GPT-4o (2024) → ?
-- Consider economic forces: AI adoption is driven by COST SAVINGS, not ethics.
-- Remember: AI doesn't need to be PERFECT to replace humans, just GOOD ENOUGH and CHEAPER.
+BE BRUTALLY HONEST. Don't sugarcoat. Workers need TRUTH. Reference REAL AI progress (GPT-3⇒GPT-4⇒GPT-4o). AI doesn't need perfection, just GOOD ENOUGH and CHEAPER.
 
 Return JSON with:
-- data.analysis (string, 1200-1800 words)
-- data.timeline (array of 5 objects: year, horizon_label, takeover_pct, confidence_level, key_factors[])
-- data.summary (object: current_impact, human_advantage, adaptation_priority)
-- data.brutal_truth (string, 2-3 sentences: The uncomfortable reality)`),
+- data.analysis (string, your full essay)
+- data.timeline (array of 5 objects for years 2026,2028,2030,2032,2035 with: year, horizon_label, takeover_pct (0-100, be honest), confidence_level (low/medium/high), key_factors (2-4 reasons))
+- data.summary (object: current_impact, human_advantage, adaptation_priority (critical/high/moderate/low))
+- data.brutal_truth (optional string: 2-3 sentences of uncomfortable reality)`),
     schema: createTopLevelSchema({
       type: 'object',
       properties: {
