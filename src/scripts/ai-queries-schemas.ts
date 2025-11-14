@@ -109,9 +109,9 @@ export const runPolicies: RunPolicy[] = [
     id: 'ai-analysis.extended',
     temperature: 0.3,
     top_p: 0.9,
-    max_tokens: 4500,
+    max_tokens: 6000,
     stop: null,
-    notes: 'Extended token limit for AI trajectory analysis (1000-1500 word responses).',
+    notes: 'Extended token limit for AI trajectory analysis (1200-1800 word brutally honest responses).',
   },
 ];
 
@@ -1014,44 +1014,121 @@ Analyze job satisfaction: overall score (0-10), fulfillment factors, burnout ris
   // 39. AI Trajectory Analysis
   {
     id: 'ai-trajectory-analysis',
-    purpose: 'Deep analysis of AI impact on this career over 1,3,5,7,10 year horizons with takeover percentages.',
-    version: '1.0.0',
+    purpose: 'BRUTALLY HONEST deep analysis of AI impact with month-by-month, year-by-year trajectory thinking.',
+    version: '2.0.0',
     template: baseTemplate('ai-trajectory-analysis', `TASK:
-Provide a comprehensive, objective analysis of how artificial intelligence will impact this specific occupation. Your response must be 1000-1500 words and include:
+Provide a BRUTALLY HONEST, deeply researched analysis of how AI will impact {{canonical_title}}. You must be RADICALLY TRANSPARENT about automation risks. This analysis must be 1200-1800 words.
 
-1. CURRENT STATE (2025): Describe current AI capabilities affecting this job TODAY. What AI tools/systems are already in use? How are they being integrated? Be specific about actual technologies.
+🎯 CRITICAL CONTEXT:
+- We are in November 2025. AI has progressed EXPONENTIALLY since GPT-4 (March 2023).
+- GPT-4o, Claude 3.5 Sonnet, Gemini 2.0, and multimodal AI are NOW in production.
+- AI can now: write code, analyze images/video, generate realistic voices, automate workflows, handle customer service, create marketing content, analyze legal documents, diagnose medical conditions from scans, and more.
+- The pace is ACCELERATING. What took 5 years (2018-2023) might take 18 months (2025-2026).
 
-2. AI CAPABILITY ASSESSMENT: Analyze which job tasks are susceptible to AI automation and which require irreplaceable human elements. Consider: decision-making complexity, physical requirements, emotional intelligence needs, creative demands, ethical considerations.
+📊 YOUR ANALYSIS MUST INCLUDE:
 
-3. TRAJECTORY ANALYSIS:
-   - 1 YEAR (2026): What AI advancements are realistically expected? How will they affect daily work?
-   - 3 YEARS (2028): What systems will likely be deployed? What tasks will be automated?
-   - 5 YEARS (2030): Major shifts in job structure? New AI-human collaboration models?
-   - 7 YEARS (2032): Transformation of role requirements? Skill set changes?
-   - 10 YEARS (2035): Long-term industry restructuring? Job evolution or elimination scenarios?
+1. **CURRENT STATE (November 2025)** - 200 words:
+   - What SPECIFIC AI tools are being used in {{canonical_title}} RIGHT NOW?
+   - Name actual products: ChatGPT, Claude, Copilot, Midjourney, Runway, etc.
+   - What % of workers in this field are already using AI daily? Weekly?
+   - Which tasks are ALREADY being automated TODAY?
+   - Be SPECIFIC: "X% of [specific task] is now handled by [specific AI tool]"
 
-4. AI TAKEOVER PERCENTAGE: For each time horizon (1,3,5,7,10 years), provide:
-   - takeover_pct: Percentage of current job tasks/functions that AI will handle (0-100)
-   - confidence_level: Your confidence in this prediction (low/medium/high)
-   - key_factors: What drives this percentage (array of 2-4 factors)
+2. **AI CAPABILITY REALITY CHECK** - 200 words:
+   - HONESTLY assess: Which parts of {{canonical_title}} are:
+     * EASILY AUTOMATED (routine, digital, pattern-based)
+     * PARTIALLY AUTOMATABLE (AI assists, human verifies)
+     * HARD TO AUTOMATE (physical, emotional, creative, ethical)
+     * IMPOSSIBLE TO AUTOMATE (for now)
+   - Don't be optimistic. If a task CAN be automated, it WILL be.
+   - Economic pressure is REAL. If AI is 10x cheaper, businesses WILL adopt it.
 
-5. INDUSTRY-SPECIFIC CONTEXT: How does this industry's adoption rate, regulatory environment, and economic incentives affect AI integration speed?
+3. **MONTH-BY-MONTH TRAJECTORY** - 400 words:
+   Think like an AI researcher tracking progress:
+   
+   **2026 (12 months out)**:
+   - What AI models will be released? (GPT-5? Claude 4? Gemini 3?)
+   - What NEW capabilities will emerge? (longer context? better reasoning? multimodal fusion?)
+   - How will {{canonical_title}} workers experience this?
+   - Takeover estimate: X% of tasks
+   
+   **2028 (3 years out)**:
+   - Extrapolate from current velocity. If AI improved 10x in 2 years (2023-2025), what happens by 2028?
+   - What workflows will be COMPLETELY automated?
+   - What new AI-human collaboration models emerge?
+   - How many jobs in this field are eliminated vs. transformed?
+   - Takeover estimate: X% of tasks
+   
+   **2030 (5 years out)**:
+   - AGI timeline? Probably not, but NARROW AI will be EXTREMELY capable.
+   - What does a typical day look like for a {{canonical_title}} worker?
+   - Are there FEWER jobs? Same number but different skills? More jobs?
+   - Takeover estimate: X% of tasks
+   
+   **2032 (7 years out)**:
+   - Compounding effects. 7 years of exponential AI growth.
+   - Is {{canonical_title}} unrecognizable? A niche specialty? Gone?
+   - What human skills are now PREMIUM (non-automatable)?
+   - Takeover estimate: X% of tasks
+   
+   **2035 (10 years out)**:
+   - Long-term structural changes.
+   - Is this job title even used anymore?
+   - What happened to the workers? Retrained? Unemployed? Elevated to higher roles?
+   - Takeover estimate: X% of tasks
 
-6. HUMAN ADVANTAGE AREAS: What aspects of this job will remain human-dominated and why?
+4. **TAKEOVER PERCENTAGES - BE HONEST** - 200 words:
+   For EACH year (2026, 2028, 2030, 2032, 2035), provide:
+   - **takeover_pct**: 0-100. Don't lowball this. If 60% of tasks are routine, say 60%.
+   - **confidence_level**: low/medium/high. Be honest about uncertainty.
+   - **key_factors**: 2-4 specific reasons. Examples:
+     * "LLM context windows reached 1M tokens, enabling full document analysis"
+     * "Computer vision accuracy exceeded human radiologists"
+     * "Economic incentive: AI costs $0.10/hour vs human $50/hour"
+     * "Regulatory barriers removed in 2027 legislation"
 
-7. ADAPTATION STRATEGIES: What should current/future workers do to remain valuable?
+5. **INDUSTRY ADOPTION REALITY** - 150 words:
+   - Will this industry adopt AI FAST or SLOW?
+   - What are the ECONOMIC incentives? (Huge cost savings = fast adoption)
+   - What are the BARRIERS? (Regulation, safety, liability, unions)
+   - Compare to other industries: Healthcare (slow), Tech (fast), Finance (medium)
 
-Be HIGHLY OBJECTIVE but HIGHLY HONEST. Simulate realistic AI capability growth based on current trajectories. Don't sugarcoat or catastrophize—provide data-driven, nuanced analysis. Consider both optimistic and pessimistic scenarios where appropriate.
+6. **HUMAN ADVANTAGE - SHRINKING OVER TIME** - 150 words:
+   - What can humans do that AI CAN'T (yet)?
+   - Be realistic: Many "human-only" skills are being automated NOW.
+   - Physical presence? (Robots improving)
+   - Empathy? (AI can simulate convincingly)
+   - Creativity? (AI generates art, music, code)
+   - What's LEFT that's truly human?
 
-Return as JSON with data.analysis (string, 1000-1500 words), data.timeline (array of 5 objects with year, takeover_pct, confidence_level, key_factors), data.summary (object with current_impact, human_advantage, adaptation_priority).`),
+7. **SURVIVAL STRATEGIES - BRUTAL HONESTY** - 150 words:
+   - If you're entering this field NOW, should you?
+   - If you're IN this field, what MUST you do?
+   - Be honest: "This job has 10 good years left, then...?"
+   - Upskilling paths: What skills are AI-RESISTANT?
+   - Career pivots: Where should people go?
+
+🚨 CRITICAL INSTRUCTIONS:
+- Do NOT sugarcoat. Workers need TRUTH, not comfort.
+- Do NOT catastrophize. Be data-driven, not alarmist.
+- Use REAL examples: "Like how [X job] automated in [Y years]"
+- Reference ACTUAL AI progress: GPT-3 (2020) → GPT-4 (2023) → GPT-4o (2024) → ?
+- Consider economic forces: AI adoption is driven by COST SAVINGS, not ethics.
+- Remember: AI doesn't need to be PERFECT to replace humans, just GOOD ENOUGH and CHEAPER.
+
+Return JSON with:
+- data.analysis (string, 1200-1800 words)
+- data.timeline (array of 5 objects: year, horizon_label, takeover_pct, confidence_level, key_factors[])
+- data.summary (object: current_impact, human_advantage, adaptation_priority)
+- data.brutal_truth (string, 2-3 sentences: The uncomfortable reality)`),
     schema: createTopLevelSchema({
       type: 'object',
       properties: {
         analysis: { 
           type: 'string',
-          minLength: 1000,
-          maxLength: 2000,
-          description: 'Comprehensive 1000-1500 word analysis'
+          minLength: 1200,
+          maxLength: 3000,
+          description: 'Brutally honest 1200-1800 word analysis'
         },
         timeline: {
           type: 'array',
@@ -1078,8 +1155,12 @@ Return as JSON with data.analysis (string, 1000-1500 words), data.timeline (arra
           },
           required: ['current_impact', 'human_advantage', 'adaptation_priority'],
         },
+        brutal_truth: {
+          type: 'string',
+          description: 'The uncomfortable reality in 2-3 sentences'
+        },
       },
-      required: ['analysis', 'timeline', 'summary'],
+      required: ['analysis', 'timeline', 'summary', 'brutal_truth'],
       additionalProperties: false,
     }),
   },
