@@ -1126,9 +1126,9 @@ Return JSON with:
       properties: {
         analysis: { 
           type: 'string',
-          minLength: 1200,
+          minLength: 800,
           maxLength: 3000,
-          description: 'Brutally honest 1200-1800 word analysis'
+          description: 'Brutally honest 1200-1800 word analysis (minimum 800 for flexibility)'
         },
         timeline: {
           type: 'array',
@@ -1160,7 +1160,7 @@ Return JSON with:
           description: 'The uncomfortable reality in 2-3 sentences'
         },
       },
-      required: ['analysis', 'timeline', 'summary', 'brutal_truth'],
+      required: ['analysis', 'timeline', 'summary'],
       additionalProperties: false,
     }),
   },
