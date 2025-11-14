@@ -709,8 +709,25 @@
             displayJobs(filtered);
         });
 
+        // Check for job ID in URL hash (#job=123)
+        function checkURLHash() {
+            const hash = window.location.hash;
+            if (hash.startsWith('#job=')) {
+                const jobId = parseInt(hash.substring(5));
+                if (jobId) {
+                    // Load this specific job directly
+                    document.getElementById('jobGrid').innerHTML = '<div class="loading">Loading job...</div>';
+                    loadJobData(jobId);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // Initialize
-        loadJobs();
+        if (!checkURLHash()) {
+            loadJobs();
+        }
     </script>
 </body>
 </html>
