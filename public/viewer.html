@@ -411,8 +411,9 @@
         // Load all jobs with results
         async function loadJobs() {
             try {
-                const response = await fetch('/api/jobs');
-                const jobs = await response.json();
+                const response = await fetch('/api/jobs?limit=100');
+                const data = await response.json();
+                const jobs = data.jobs || [];
                 
                 // Get result counts for each job
                 const jobsWithCounts = await Promise.all(
@@ -422,7 +423,7 @@
                             const data = await countRes.json();
                             return {
                                 ...job,
-                                resultCount: data.length
+                                resultCount: data.count || 0
                             };
                         } catch {
                             return {
@@ -487,11 +488,13 @@
             try {
                 // Get job details
                 const jobRes = await fetch(`/api/jobs/${jobId}`);
-                const job = await jobRes.json();
+                const jobData = await jobRes.json();
+                const job = jobData.job || jobData;
 
                 // Get all query results
                 const dataRes = await fetch(`/api/jobs/${jobId}/data`);
-                const results = await dataRes.json();
+                const dataResponse = await dataRes.json();
+                const results = dataResponse.data || [];
 
                 // Build results map
                 jobResults = {};
@@ -554,12 +557,16 @@
             const totalCount = allQueries.length;
             const completionPct = Math.round((completedCount / totalCount) * 100);
 
+            const jobTitle = job.canonicaltitle || job.canonicalTitle || job.title || 'Unknown';
+            const socCode = job.soccode || job.socCode || job.soc_code || 'N/A';
+            const jobZone = job.jobzone || job.jobZone || job.job_zone || 'N/A';
+
             container.innerHTML = `
                 <div class="job-header">
-                    <h2 class="job-title">${job.canonicaltitle || job.canonicalTitle}</h2>
+                    <h2 class="job-title">${jobTitle}</h2>
                     <div class="job-meta">
-                        <span class="badge">SOC: ${job.soccode || job.socCode}</span>
-                        <span class="badge">Job Zone: ${job.jobzone || job.jobZone || 'N/A'}</span>
+                        <span class="badge">SOC: ${socCode}</span>
+                        <span class="badge">Job Zone: ${jobZone}</span>
                     </div>
                 </div>
 
