@@ -459,11 +459,11 @@ app.get('/api/admin/verify/onet-data', adminAuth, async (req, res) => {
   }
 });
 
-// Test job endpoint - process ONE job with all 38 queries USING REAL OPENAI
+// Test job endpoint - process ONE job with all 39 queries USING REAL OPENAI
 app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
   try {
     const pool = getPool();
-    logger.info('Starting REAL test job with OpenAI - processing 1 job with all 38 queries...');
+    logger.info('Starting REAL test job with OpenAI - processing 1 job with all 39 queries...');
     
     // Import worker functions
     const { callOpenAI, validateJSON } = await import('./services/openai.js');
@@ -489,7 +489,7 @@ app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
     
     logs.push(`Testing job: ${job.canonicalTitle} (ID: ${job.id})`);
     logs.push(`SOC Code: ${job.socCode}`);
-    logs.push(`⚠ WARNING: This will make 38 REAL OpenAI API calls!`);
+    logs.push(`⚠ WARNING: This will make 39 REAL OpenAI API calls!`);
     logs.push('---');
     
     // Get all queue items for this job with prompts
@@ -501,7 +501,7 @@ app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
       LEFT JOIN prompt_templates pt ON q.query_id = pt.id
       WHERE q.job_id = $1 AND q.status = 'pending'
       ORDER BY q.query_id
-      LIMIT 38
+      LIMIT 39
     `, [job.id]);
     
     logs.push(`Found ${queueItems.rows.length} queries to process`);
@@ -516,7 +516,7 @@ app.post('/api/admin/worker/test', adminAuth, async (req, res) => {
       const startTime = Date.now();
       
       try {
-        logs.push(`[${successful + failed + 1}/38] ${item.display_name}...`);
+        logs.push(`[${successful + failed + 1}/39] ${item.display_name}...`);
         
         // Mark as running
         await pool.query(
