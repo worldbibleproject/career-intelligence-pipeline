@@ -260,7 +260,7 @@
             <h1>🚀 Career Intelligence Pipeline</h1>
             <p class="subtitle">Admin Dashboard - Real-time monitoring and control</p>
             <div style="margin-top: 15px;">
-                <a href="/viewer.html" class="btn btn-secondary" style="text-decoration: none;">📊 View Career Data</a>
+                <a href="/results.html" class="btn btn-secondary" style="text-decoration: none;">📊 View Job Results</a>
             </div>
         </div>
         
@@ -732,7 +732,7 @@
                     
                     addLog('---', 'info');
                     addLog(`✓ All ${data.results_count} results successfully stored in database!`, 'success');
-                    addLog(`📊 View in dashboard: ${window.location.origin}/viewer.html#job=${lastTestedJobId}`, 'info');
+                    addLog(`📊 View in dashboard: ${window.location.origin}/results.html#job=${lastTestedJobId}`, 'info');
                     
                     if (data.results_count < 39) {
                         addLog(`⚠ Missing ${39 - data.results_count} results`, 'warning');
@@ -782,7 +782,7 @@
                     addLog(`  Success: ${response.successful}`, 'success');
                     addLog(`  Failed: ${response.failed}`, response.failed > 0 ? 'error' : 'info');
                     addLog(`  🔍 Click "View Results" to see stored data`, 'info');
-                    addLog(`  📊 Or open: ${window.location.origin}/viewer.html#job=${response.jobId}`, 'info');
+                    addLog(`  📊 Or open: ${window.location.origin}/results.html#job=${response.jobId}`, 'info');
                     
                     if (response.logs && response.logs.length > 0) {
                         addLog('Detailed logs:', 'info');

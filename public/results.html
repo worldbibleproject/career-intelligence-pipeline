@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Results Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .job-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .job-info h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .job-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .query-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .query-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .query-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .query-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .query-data {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow: auto;
+            display: none;
+        }
+
+        .query-data.expanded {
+            display: block;
+        }
+
+        .expand-icon {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .job-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Job Results Viewer</h1>
+        <p style="color: #666; margin-bottom: 20px;">View stored AI query results for any job</p>
+
+        <div style="margin-bottom: 20px;">
+            <input 
+                type="number" 
+                id="jobIdInput" 
+                class="job-input" 
+                placeholder="Enter Job ID (e.g., 1)"
+            >
+            <button class="btn" onclick="loadJob()">Load Job</button>
+            <a href="/admin.html" class="btn" style="margin-left: 10px;">← Back to Admin</a>
+        </div>
+
+        <div id="content">
+            <div class="loading">Enter a Job ID above to view results</div>
+        </div>
+    </div>
+
+    <script>
+        const API_TOKEN = 'secure-random-token-2025';
+
+        async function loadJob() {
+            const jobId = document.getElementById('jobIdInput').value;
+            if (!jobId) {
+                alert('Please enter a job ID');
+                return;
+            }
+
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading">Loading job data...</div>';
+
+            try {
+                // Get job details
+                const jobRes = await fetch(`/api/jobs/${jobId}`);
+                if (!jobRes.ok) throw new Error('Job not found');
+                const jobData = await jobRes.json();
+                const job = jobData.job || jobData;
+
+                // Get query results
+                const resultsRes = await fetch(`/api/jobs/${jobId}/data`);
+                if (!resultsRes.ok) throw new Error('Failed to load results');
+                const resultsData = await resultsRes.json();
+                const results = resultsData.data || [];
+
+                displayJob(job, results);
+            } catch (error) {
+                content.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function displayJob(job, results) {
+            const jobTitle = job.canonicaltitle || job.canonicalTitle || job.title || 'Unknown';
+            const socCode = job.soccode || job.socCode || job.soc_code || 'N/A';
+            const jobZone = job.jobzone || job.jobZone || job.job_zone || 'N/A';
+
+            const html = `
+                <div class="job-info">
+                    <h2>${jobTitle}</h2>
+                    <div class="job-meta">
+                        <span class="badge">Job ID: ${job.id}</span>
+                        <span class="badge">SOC: ${socCode}</span>
+                        <span class="badge">Job Zone: ${jobZone}</span>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value">${results.length}/39</div>
+                        <div class="stat-label">Queries Complete</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${Math.round((results.length/39)*100)}%</div>
+                        <div class="stat-label">Completion</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${formatSize(results)}</div>
+                        <div class="stat-label">Total Data Size</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 30px 0 20px 0; color: #333;">Query Results (${results.length})</h3>
+                
+                ${results.length === 0 ? 
+                    '<div class="error">No results found for this job. Run the AI worker first.</div>' :
+                    results.map((result, index) => generateQueryCard(result, index)).join('')
+                }
+            `;
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function generateQueryCard(result, index) {
+            const queryName = result.query_id?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Unknown';
+            const createdAt = new Date(result.created_at).toLocaleString();
+            const dataSize = JSON.stringify(result.response_data).length;
+            const sizeKB = (dataSize / 1024).toFixed(1);
+
+            return `
+                <div class="query-card">
+                    <div class="query-header" onclick="toggleQuery(${index})">
+                        <div>
+                            <div class="query-title">${index + 1}. ${queryName}</div>
+                            <div class="query-meta">
+                                Size: ${sizeKB} KB | Created: ${createdAt}
+                            </div>
+                        </div>
+                        <span class="expand-icon" id="icon-${index}">▼</span>
+                    </div>
+                    <div class="query-data" id="data-${index}">
+${JSON.stringify(result.response_data, null, 2)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleQuery(index) {
+            const data = document.getElementById(`data-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+            
+            data.classList.toggle('expanded');
+            icon.classList.toggle('expanded');
+        }
+
+        function formatSize(results) {
+            const bytes = JSON.stringify(results).length;
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // Check URL hash for job ID
+        const hash = window.location.hash;
+        if (hash.startsWith('#job=')) {
+            const jobId = hash.substring(5);
+            document.getElementById('jobIdInput').value = jobId;
+            loadJob();
+        }
+
+        // Allow Enter key to load
+        document.getElementById('jobIdInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadJob();
+        });
+    </script>
+</body>
+</html>
